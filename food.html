@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P.08 美食推薦</title>
+    <style>
+        /* 基礎樣式同上 ... */
+        :root { --book-paper: #f9f4e8; --ink-color: #3e3a39; --accent-brown: #8c7662; }
+        body { background-color: #d1cfc7; font-family: "PingFang TC", serif; margin: 0; display: flex; justify-content: center; padding: 20px 15px; }
+        .book-page { background-color: var(--book-paper); width: 100%; max-width: 450px; padding: 40px 25px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); position: relative; border: 1px solid #e0d6c3; }
+        .back-link { text-decoration: none; color: var(--accent-brown); font-size: 14px; display: block; margin-bottom: 25px; }
+        .page-header { text-align: center; border-bottom: 2px double var(--accent-brown); margin-bottom: 20px; padding-bottom: 15px; }
+        .item-card { border-bottom: 1px dotted var(--accent-brown); padding: 20px 5px; }
+        .food-name { font-size: 19px; font-weight: 600; color: #2c3e50; text-decoration: none; display: block; }
+        .food-intro { font-size: 14px; color: #5d5d5d; line-height: 1.6; margin: 12px 0; font-style: italic; background: rgba(140, 118, 98, 0.05); padding: 10px; border-radius: 4px; }
+        .page-footer { margin-top: 50px; text-align: center; color: var(--accent-brown); font-family: "Georgia", serif; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="book-page">
+        <a href="index.html" class="back-link">⇠ 返回目錄</a>
+        <div class="page-header">
+            <h2>美食私房推薦</h2>
+            <p style="font-size: 10px; color: #a39485; margin: 5px 0 0 0; letter-spacing: 1px;">GOURMET SELECTIONS</p>
+        </div>
+        <div id="content">正在回味美食...</div>
+        <div class="page-footer">Page — 08</div>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
+        async function loadData() {
+            const res = await fetch(`${GAS_URL}?type=food`);
+            const data = await res.json();
+            let html = '';
+            data.forEach(item => {
+                if(!item.名稱) return;
+                html += `
+                <div class="item-card">
+                    <a href="${item.網址}" target="_blank" class="food-name">🍴 ${item.名稱} 🔗</a>
+                    <div class="food-intro">「${item.介紹}」</div>
+                </div>`;
+            });
+            document.getElementById('content').innerHTML = html;
+        }
+        loadData();
+    </script>
+</body>
+</html>

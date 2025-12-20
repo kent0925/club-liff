@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社團年鑑 2025</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        :root {
+            --book-paper: #f9f4e8; /* 仿舊紙張色 */
+            --ink-color: #3e3a39;
+            --accent-brown: #8c7662;
+        }
+
+        body {
+            background-color: #d1cfc7; /* 背景像桌面 */
+            font-family: "PingFang TC", "Microsoft JhengHei", serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px 10px;
+        }
+
+        .book-page {
+            background-color: var(--book-paper);
+            width: 100%;
+            max-width: 400px;
+            min-height: 90vh;
+            padding: 40px 30px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+            border-left: 2px solid rgba(0,0,0,0.1);
+        }
+
+        /* 書籍標題 */
+        .book-header {
+            text-align: center;
+            border-bottom: 2px double var(--accent-brown);
+            margin-bottom: 40px;
+            padding-bottom: 10px;
+        }
+
+        .book-header h1 {
+            font-size: 26px;
+            color: var(--ink-color);
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
+
+        .chapter-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .chapter-item {
+            margin-bottom: 25px;
+        }
+
+        .chapter-link {
+            display: flex;
+            align-items: baseline;
+            text-decoration: none;
+            color: var(--ink-color);
+            transition: opacity 0.2s;
+        }
+
+        .chapter-link:active {
+            opacity: 0.6;
+        }
+
+        .chapter-number {
+            font-family: "Georgia", serif;
+            font-style: italic;
+            font-size: 18px;
+            color: var(--accent-brown);
+            margin-right: 15px;
+            min-width: 25px;
+        }
+
+        .chapter-title {
+            font-size: 18px;
+            font-weight: 500;
+            flex-grow: 1;
+            border-bottom: 1px dotted var(--accent-brown);
+        }
+
+        .page-number {
+            font-family: "Georgia", serif;
+            margin-left: 10px;
+            color: var(--accent-brown);
+        }
+
+        /* 會員資訊區（像藏書章或簽名） */
+        .signature-section {
+            margin-top: 60px;
+            padding: 15px;
+            border: 1px dashed var(--accent-brown);
+            display: flex;
+            align-items: center;
+            transform: rotate(-1deg);
+        }
+
+        #user-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 5px;
+            filter: sepia(0.3); /* 稍微復古化 */
+            margin-right: 15px;
+        }
+
+        .signature-text {
+            font-size: 14px;
+            color: var(--accent-brown);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="book-page">
+        <div class="book-header">
+            <p style="margin:0; font-style: italic; color: #888;">Chapter 2025</title>
+            <h1>社團事務目錄</h1>
+        </div>
+
+        <ul class="chapter-list">
+            <li class="chapter-item">
+                <a href="host.html" class="chapter-link">
+                    <span class="chapter-number">01</span>
+                    <span class="chapter-title">每月爐主名冊</span>
+                    <span class="page-number">P.05</span>
+                </a>
+            </li>
+            <li class="chapter-item">
+                <a href="birthday.html" class="chapter-link">
+                    <span class="chapter-number">02</span>
+                    <span class="chapter-title">會員壽星紀錄</span>
+                    <span class="page-number">P.12</span>
+                </a>
+            </li>
+            <li class="chapter-item">
+                <a href="finance.html" class="chapter-link">
+                    <span class="chapter-number">03</span>
+                    <span class="chapter-title">會內年度帳冊</span>
+                    <span class="page-number">P.28</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="signature-section" id="profile" style="display:none;">
+            <img id="user-img" src="" alt="">
+            <div class="signature-text">
+                持有者親筆：<br>
+                <strong id="user-name">載入中...</strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function initLiff() {
+            try {
+                await liff.init({ liffId: "你的_LIFF_ID" });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    document.getElementById('profile').style.display = 'flex';
+                    document.getElementById('user-name').textContent = profile.displayName;
+                    document.getElementById('user-img').src = profile.pictureUrl;
+                } else {
+                    liff.login();
+                }
+            } catch (err) {
+                console.error("LIFF 初始化失敗", err);
+            }
+        }
+        initLiff();
+    </script>
+</body>
+</html>

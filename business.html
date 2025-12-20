@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P.07 會內事業</title>
+    <style>
+        /* 直接引用 restaurant.html 的 CSS ... */
+        :root { --book-paper: #f9f4e8; --ink-color: #3e3a39; --accent-brown: #8c7662; --page-border: #e0d6c3; }
+        body { background-color: #d1cfc7; font-family: "PingFang TC", serif; margin: 0; display: flex; justify-content: center; padding: 20px 15px; }
+        .book-page { background-color: var(--book-paper); width: 100%; max-width: 450px; padding: 40px 25px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); border: 1px solid var(--page-border); position: relative; }
+        .back-link { text-decoration: none; color: var(--accent-brown); font-size: 14px; display: block; margin-bottom: 25px; }
+        .page-header { text-align: center; border-bottom: 2px double var(--accent-brown); margin-bottom: 20px; padding-bottom: 15px; }
+        h2 { color: var(--ink-color); letter-spacing: 3px; margin: 0; font-size: 22px; }
+        .item-card { border-bottom: 1px dotted var(--accent-brown); padding: 20px 5px; }
+        .item-link { font-size: 19px; font-weight: 600; color: var(--ink-color); text-decoration: none; display: inline-block; margin-bottom: 10px; }
+        .item-link:after { content: ' 🔗'; font-size: 14px; opacity: 0.5; }
+        .info-row { font-size: 14px; color: #666; margin: 6px 0; }
+        .action-btn { text-decoration: none; border: 1px solid var(--accent-brown); color: var(--accent-brown); padding: 4px 12px; border-radius: 15px; font-size: 12px; }
+        .page-footer { margin-top: 50px; text-align: center; color: var(--accent-brown); font-family: "Georgia", serif; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="book-page">
+        <a href="index.html" class="back-link">⇠ 返回目錄</a>
+        <div class="page-header">
+            <h2>會內事業清單</h2>
+            <p style="font-size: 10px; color: #a39485; margin: 5px 0 0 0; letter-spacing: 1px;">MEMBER BUSINESSES</p>
+        </div>
+        <div id="content">正在翻開名錄...</div>
+        <div class="page-footer">Page — 07</div>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
+        async function loadData() {
+            const res = await fetch(`${GAS_URL}?type=business`);
+            const data = await res.json();
+            let html = '';
+            data.forEach(item => {
+                if(!item.名稱) return;
+                html += `
+                <div class="item-card">
+                    <a href="${item.連結}" target="_blank" class="item-link">${item.名稱}</a>
+                    <div class="info-row">📍 ${item.地址}</div>
+                    <div style="margin-top:10px;">
+                        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.地址)}" class="action-btn" target="_blank">查看地點</a>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('content').innerHTML = html;
+        }
+        loadData();
+    </script>
+</body>
+</html>

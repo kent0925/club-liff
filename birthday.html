@@ -39,20 +39,26 @@
 
         .data-list { list-style: none; padding: 0; margin: 0; }
 
-        /* 一般壽星樣式 */
         .data-item {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            padding: 15px 5px;
+            padding: 18px 5px;
             border-bottom: 1px dotted var(--accent-brown);
         }
 
-        /* 本月壽星特別強調樣式 */
+        /* 本月壽星的高亮樣式 */
         .data-item.current-month {
             background-color: rgba(184, 155, 114, 0.1);
             border-left: 4px solid var(--highlight-gold);
             padding-left: 10px;
+        }
+
+        /* 左側日期區塊 */
+        .date-box {
+            display: flex;
+            flex-direction: column;
+            min-width: 70px;
         }
 
         .month-label { 
@@ -60,18 +66,27 @@
             font-style: italic; 
             color: var(--accent-brown); 
             font-size: 18px; 
-            min-width: 50px;
+            line-height: 1;
         }
 
+        .day-label {
+            font-size: 14px;
+            color: #a39485;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        /* 右側姓名與備註區塊 */
         .name-container {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             text-align: right;
+            flex: 1;
         }
 
-        .name-label { font-size: 18px; font-weight: 600; color: var(--ink-color); margin-bottom: 4px; }
-        .note-text { font-size: 18px; color: var(--accent-brown); font-style: italic; opacity: 0.9; }
+        .name-label { font-size: 18px; font-weight: 600; color: var(--ink-color); margin-bottom: 6px; }
+        .note-text { font-size: 18px; color: var(--accent-brown); font-style: italic; opacity: 0.9; line-height: 1.4; }
 
         .badge {
             font-size: 11px;
@@ -79,7 +94,7 @@
             color: white;
             padding: 2px 8px;
             border-radius: 10px;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             display: inline-block;
         }
 
@@ -108,7 +123,8 @@
 
         async function loadData() {
             try {
-                const response = await fetch(`${GAS_URL}?type=birthday`);
+                // 強制不使用快取以確保即時性
+                const response = await fetch(`${GAS_URL}?type=birthday`, { cache: 'no-cache' });
                 return await response.json();
             } catch (error) {
                 console.error("讀取失敗:", error);
@@ -118,42 +134,45 @@
 
         async function initPage() {
             const container = document.getElementById('content');
-            const data = await loadData();
+            const rawData = await loadData();
             const now = new Date();
-            const currentMonth = now.getMonth() + 1; // 1-12
+            const currentMonth = now.getMonth() + 1;
 
             document.getElementById('current-date-tip').innerText = `CURRENT MONTH: ${currentMonth}月`;
 
-            if (!data || !Array.isArray(data)) {
-                container.innerHTML = '<div class="loading">尚無壽星資料</div>';
+            if (!rawData || !Array.isArray(rawData)) {
+                container.innerHTML = '<div class="loading">查無資料，請確認試算表內容</div>';
                 return;
             }
 
-            // --- 排序邏輯：將本月壽星移至最上方 ---
-            const thisMonthStars = [];
-            const otherMonthStars = [];
+            // 1. 統一資料格式並過濾空行
+            const processedData = rawData
+                .filter(item => item.姓名 && item.姓名.trim() !== "")
+                .map(item => ({
+                    ...item,
+                    m: parseInt(String(item.月份).replace(/[^0-9]/g, '')),
+                    d: parseInt(String(item.日期).replace(/[^0-9]/g, '')) || 0
+                }));
 
-            data.forEach(item => {
-                // 假設試算表「月份」欄位填的是純數字 (如 12) 或日期物件
-                let m = parseInt(item.月份);
-                if (typeof item.月份 === 'string' && item.月份.includes('T')) {
-                    m = new Date(item.月份).getMonth() + 1;
-                }
+            // 2. 分類與排序
+            const thisMonthStars = processedData.filter(item => item.m === currentMonth);
+            const otherMonthStars = processedData.filter(item => item.m !== currentMonth);
 
-                if (m === currentMonth) {
-                    thisMonthStars.push({...item, m});
-                } else {
-                    otherMonthStars.push({...item, m});
-                }
-            });
+            // 本月壽星依日期排序
+            thisMonthStars.sort((a, b) => a.d - b.d);
+            // 其他壽星依月份、日期排序
+            otherMonthStars.sort((a, b) => (a.m - b.m) || (a.d - b.d));
 
-            // 其餘月份按數字大小排序
-            otherMonthStars.sort((a, b) => a.m - b.m);
+            const finalData = [...thisMonthStars, ...otherMonthStars];
 
-            const sortedData = [...thisMonthStars, ...otherMonthStars];
+            // 3. 渲染 HTML
+            if (finalData.length === 0) {
+                container.innerHTML = '<div class="loading">名冊目前是空白的</div>';
+                return;
+            }
 
             let html = '<ul class="data-list">';
-            sortedData.forEach(item => {
+            finalData.forEach(item => {
                 const isThisMonth = item.m === currentMonth;
                 const noteContent = (item.備註 && String(item.備註).trim() !== "") 
                     ? `<span class="note-text">※ ${item.備註}</span>` 
@@ -161,10 +180,13 @@
 
                 html += `
                     <li class="data-item ${isThisMonth ? 'current-month' : ''}">
-                        <span class="month-label">${item.m}月</span>
+                        <div class="date-box">
+                            <span class="month-label">${item.m}月</span>
+                            <span class="day-label">${item.d > 0 ? item.d + '日' : ''}</span>
+                        </div>
                         <div class="name-container">
                             ${isThisMonth ? '<span class="badge">本月壽星 🎂</span>' : ''}
-                            <span class="name-label">${item.姓名 || '未填'}</span>
+                            <span class="name-label">${item.姓名}</span>
                             ${noteContent}
                         </div>
                     </li>

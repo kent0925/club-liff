@@ -22,7 +22,6 @@
             padding: 20px 15px;
         }
 
-        /* 模擬書頁容器 */
         .book-page {
             background-color: var(--book-paper);
             width: 100%;
@@ -52,13 +51,12 @@
 
         h2 { color: var(--ink-color); letter-spacing: 5px; margin: 0; font-size: 24px; }
 
-        /* 清單風格 */
         .data-list { list-style: none; padding: 0; margin: 0; }
 
         .data-item {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start; /* 讓多行備註時對齊頂部 */
+            align-items: flex-start;
             padding: 18px 5px;
             border-bottom: 1px dotted var(--accent-brown);
         }
@@ -71,7 +69,6 @@
             white-space: nowrap;
         }
 
-        /* 姓名與備註容器 */
         .name-container {
             display: flex;
             flex-direction: column;
@@ -80,20 +77,20 @@
             padding-left: 15px;
         }
 
+        /* 姓名與備註現在字體大小一致 */
         .name-label {
             font-size: 18px;
             font-weight: 600;
             color: var(--ink-color);
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
-        /* 姓名後的備註樣式 */
         .note-text {
-            font-size: 13px;
+            font-size: 18px; /* 已調整為與姓名一致 */
             color: var(--accent-brown);
             font-style: italic;
-            line-height: 1.4;
-            opacity: 0.85;
+            line-height: 1.5;
+            opacity: 0.9;
         }
 
         .loading, .error { text-align: center; padding: 50px 0; color: #8c7662; font-style: italic; }
@@ -118,10 +115,8 @@
     </div>
 
     <script>
-        // 請確保這是你最新的 GAS 部署網址
         const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
 
-        // 核心抓取函式
         async function loadData(sheetType) {
             try {
                 const response = await fetch(`${GAS_URL}?type=${sheetType}`, {
@@ -140,7 +135,6 @@
             const container = document.getElementById('content');
             const weekDays = ["日", "一", "二", "三", "四", "五", "六"];
 
-            // 呼叫資料
             const data = await loadData("hosts");
 
             if (!data || !Array.isArray(data)) {
@@ -151,12 +145,10 @@
             let html = '<ul class="data-list">';
             
             data.forEach(item => {
-                // 過濾掉空行
                 if(!item.月份 && !item.姓名) return;
 
                 let displayDate = item.月份;
                 
-                // 自動解析日期格式
                 if (typeof item.月份 === 'string' && item.月份.includes('T')) {
                     const dObj = new Date(item.月份);
                     if (!isNaN(dObj)) {
@@ -164,7 +156,6 @@
                     }
                 }
 
-                // 準備備註內容
                 const noteContent = (item.備註 && String(item.備註).trim() !== "") 
                     ? `<span class="note-text">※ ${item.備註}</span>` 
                     : "";
@@ -184,7 +175,6 @@
             container.innerHTML = html;
         }
 
-        // 啟動頁面
         initPage();
     </script>
 </body>

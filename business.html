@@ -3,54 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P.07 會內事業</title>
+    <title>P.08 會內事業清單</title>
     <style>
-        /* 直接引用 restaurant.html 的 CSS ... */
-        :root { --book-paper: #f9f4e8; --ink-color: #3e3a39; --accent-brown: #8c7662; --page-border: #e0d6c3; }
-        body { background-color: #d1cfc7; font-family: "PingFang TC", serif; margin: 0; display: flex; justify-content: center; padding: 20px 15px; }
-        .book-page { background-color: var(--book-paper); width: 100%; max-width: 450px; padding: 40px 25px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); border: 1px solid var(--page-border); position: relative; }
+        :root {
+            --book-paper: #f9f4e8;
+            --ink-color: #3e3a39;
+            --accent-brown: #8c7662;
+            --page-border: #e0d6c3;
+        }
+
+        body {
+            background-color: #d1cfc7;
+            font-family: "PingFang TC", "Microsoft JhengHei", serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px 15px;
+        }
+
+        .book-page {
+            background-color: var(--book-paper);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px 25px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1), 0 0 40px rgba(0,0,0,0.05) inset;
+            position: relative;
+            border: 1px solid var(--page-border);
+        }
+
         .back-link { text-decoration: none; color: var(--accent-brown); font-size: 14px; display: block; margin-bottom: 25px; }
-        .page-header { text-align: center; border-bottom: 2px double var(--accent-brown); margin-bottom: 20px; padding-bottom: 15px; }
-        h2 { color: var(--ink-color); letter-spacing: 3px; margin: 0; font-size: 22px; }
-        .item-card { border-bottom: 1px dotted var(--accent-brown); padding: 20px 5px; }
-        .item-link { font-size: 19px; font-weight: 600; color: var(--ink-color); text-decoration: none; display: inline-block; margin-bottom: 10px; }
-        .item-link:after { content: ' 🔗'; font-size: 14px; opacity: 0.5; }
-        .info-row { font-size: 14px; color: #666; margin: 6px 0; }
-        .action-btn { text-decoration: none; border: 1px solid var(--accent-brown); color: var(--accent-brown); padding: 4px 12px; border-radius: 15px; font-size: 12px; }
+        .page-header { text-align: center; border-bottom: 2px double var(--accent-brown); margin-bottom: 25px; padding-bottom: 15px; }
+        h2 { color: var(--ink-color); letter-spacing: 3px; margin: 0; font-size: 24px; }
+
+        .item-card {
+            border-bottom: 1px dotted var(--accent-brown);
+            padding: 25px 5px;
+        }
+
+        .biz-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--ink-color);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .info-row {
+            font-size: 14px;
+            color: #666;
+            margin: 6px 0;
+            line-height: 1.5;
+        }
+
+        /* 備註字體大小與姓名一致 */
+        .biz-note {
+            font-size: 18px;
+            color: var(--accent-brown);
+            font-style: italic;
+            margin: 12px 0;
+            opacity: 0.9;
+        }
+
+        /* 連結按鈕群組 */
+        .link-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .link-btn {
+            text-decoration: none;
+            background: #fff;
+            border: 1px solid var(--accent-brown);
+            color: var(--accent-brown);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            transition: 0.2s;
+        }
+
+        .link-btn:active {
+            background: var(--accent-brown);
+            color: #fff;
+        }
+
+        .link-btn::before {
+            content: "🔗 ";
+            font-size: 10px;
+        }
+
+        .loading { text-align: center; padding: 50px; color: var(--accent-brown); font-style: italic; }
         .page-footer { margin-top: 50px; text-align: center; color: var(--accent-brown); font-family: "Georgia", serif; font-size: 14px; }
     </style>
 </head>
 <body>
+
     <div class="book-page">
         <a href="index.html" class="back-link">⇠ 返回目錄</a>
         <div class="page-header">
             <h2>會內事業清單</h2>
-            <p style="font-size: 10px; color: #a39485; margin: 5px 0 0 0; letter-spacing: 1px;">MEMBER BUSINESSES</p>
+            <p style="font-size: 10px; color: #a39485; margin: 5px 0 0 0; letter-spacing: 1px;">BUSINESS DIRECTORY</p>
         </div>
-        <div id="content">正在翻開名錄...</div>
-        <div class="page-footer">Page — 07</div>
+
+        <div id="content">
+            <div class="loading">正在檢索商號...</div>
+        </div>
+
+        <div class="page-footer">Page — 08</div>
     </div>
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
-        async function loadData() {
-            const res = await fetch(`${GAS_URL}?type=business`);
-            const data = await res.json();
-            let html = '';
-            data.forEach(item => {
-                if(!item.名稱) return;
-                html += `
-                <div class="item-card">
-                    <a href="${item.連結}" target="_blank" class="item-link">${item.名稱}</a>
-                    <div class="info-row">📍 ${item.地址}</div>
-                    <div style="margin-top:10px;">
-                        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.地址)}" class="action-btn" target="_blank">查看地點</a>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('content').innerHTML = html;
+
+        async function initPage() {
+            const container = document.getElementById('content');
+            try {
+                const response = await fetch(`${GAS_URL}?type=business`, { cache: 'no-cache' });
+                const data = await response.json();
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div class="loading">名冊暫無內容</div>';
+                    return;
+                }
+
+                let html = '';
+                data.forEach(item => {
+                    if (!item.名稱) return;
+
+                    // 收集最多 5 個連結
+                    let linksHtml = '';
+                    for (let i = 1; i <= 5; i++) {
+                        let linkVal = item[`連結${i}`];
+                        if (linkVal && String(linkVal).startsWith('http')) {
+                            // 簡單判斷顯示文字
+                            let label = "連結 " + i;
+                            if (linkVal.includes('line.me')) label = "LINE";
+                            if (linkVal.includes('facebook.com')) label = "FB";
+                            if (linkVal.includes('instagram.com')) label = "IG";
+                            if (linkVal.includes('google.com/maps')) label = "地圖";
+                            
+                            linksHtml += `<a href="${linkVal}" target="_blank" class="link-btn">${label}</a>`;
+                        }
+                    }
+
+                    const noteDisplay = (item.備註 && String(item.備註).trim() !== "")
+                        ? `<div class="biz-note">※ ${item.備註}</div>`
+                        : "";
+
+                    html += `
+                        <div class="item-card">
+                            <span class="biz-name">🏢 ${item.名稱}</span>
+                            <div class="info-row">📍 地址：${item.地址 || '私訊洽詢'}</div>
+                            ${noteDisplay}
+                            <div class="link-group">
+                                ${linksHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+
+            } catch (e) {
+                container.innerHTML = '<div class="loading">讀取失敗，請稍後再試</div>';
+            }
         }
-        loadData();
+
+        initPage();
     </script>
 </body>
 </html>

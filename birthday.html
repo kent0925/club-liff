@@ -1,0 +1,39 @@
+<script>
+    // 1. 設定你的 GAS 網址（從 Google Apps Script 部署得到的）
+    const GAS_URL = "https://script.google.com/macros/s/XXXXX/exec"; 
+
+    // 2. 這是你問的函式：放在 script 的頂層或邏輯區
+    async function loadData(sheetType) {
+        try {
+            const response = await fetch(`${GAS_URL}?type=${sheetType}`);
+            const data = await response.json();
+            return data; // 回傳資料供後續呈現使用
+        } catch (error) {
+            console.error("資料讀取錯誤:", error);
+            return [];
+        }
+    }
+
+    // 3. 實際執行：當頁面開啟時，呼叫 loadData 並渲染畫面
+    window.onload = async function() {
+        // 因為是爐主頁面，所以傳入 "hosts" (對應 Google Sheet 的工作表名稱)
+        const hostData = await loadData("birthdays"); 
+        
+        // 渲染邏輯
+        renderTable(hostData);
+    };
+
+    function renderTable(data) {
+        const listBody = document.getElementById('host-list');
+        if (data.length === 0) {
+            listBody.innerHTML = '<tr><td colspan="2">目前尚無資料</td></tr>';
+            return;
+        }
+        
+        let html = "";
+        data.forEach(item => {
+            html += `<tr><td>${item.月份}</td><td>${item.姓名}</td></tr>`;
+        });
+        listBody.innerHTML = html;
+    }
+</script>

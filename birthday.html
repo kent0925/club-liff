@@ -1,39 +1,160 @@
-<script>
-    // 1. 設定你的 GAS 網址（從 Google Apps Script 部署得到的）
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
-
-    // 2. 這是你問的函式：放在 script 的頂層或邏輯區
-    async function loadData(sheetType) {
-        try {
-            const response = await fetch(`${GAS_URL}?type=${sheetType}`);
-            const data = await response.json();
-            return data; // 回傳資料供後續呈現使用
-        } catch (error) {
-            console.error("資料讀取錯誤:", error);
-            return [];
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P.12 會員壽星紀錄</title>
+    <style>
+        :root {
+            --book-paper: #f9f4e8;
+            --ink-color: #3e3a39;
+            --accent-brown: #8c7662;
+            --birthday-red: #d9534f;
         }
-    }
 
-    // 3. 實際執行：當頁面開啟時，呼叫 loadData 並渲染畫面
-    window.onload = async function() {
-        // 因為是爐主頁面，所以傳入 "hosts" (對應 Google Sheet 的工作表名稱)
-        const hostData = await loadData("birthdays"); 
-        
-        // 渲染邏輯
-        renderTable(hostData);
-    };
-
-    function renderTable(data) {
-        const listBody = document.getElementById('host-list');
-        if (data.length === 0) {
-            listBody.innerHTML = '<tr><td colspan="2">目前尚無資料</td></tr>';
-            return;
+        body {
+            background-color: #d1cfc7;
+            font-family: "PingFang TC", serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px 10px;
         }
+
+        .book-page {
+            background-color: var(--book-paper);
+            width: 100%;
+            max-width: 400px;
+            min-height: 90vh;
+            padding: 30px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--accent-brown);
+            font-size: 14px;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            border-bottom: 1px solid var(--accent-brown);
+            margin-bottom: 30px;
+        }
+
+        h2 { color: var(--ink-color); letter-spacing: 3px; margin-bottom: 5px; }
         
-        let html = "";
-        data.forEach(item => {
-            html += `<tr><td>${item.月份}</td><td>${item.姓名}</td></tr>`;
-        });
-        listBody.innerHTML = html;
-    }
-</script>
+        .current-month-info {
+            font-size: 14px;
+            color: var(--accent-brown);
+            margin-bottom: 20px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .data-list { list-style: none; padding: 0; }
+
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px dotted #ccc;
+            align-items: center;
+        }
+
+        /* 壽星特別樣式 */
+        .is-birthday {
+            background-color: rgba(217, 83, 79, 0.05);
+        }
+
+        .date-label {
+            font-family: "Georgia", serif;
+            color: var(--accent-brown);
+            font-size: 16px;
+        }
+
+        .name-label {
+            font-size: 17px;
+            color: var(--ink-color);
+        }
+
+        .birthday-tag {
+            color: var(--birthday-red);
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .loading { text-align: center; padding: 40px; color: #888; font-style: italic; }
+        .page-footer { position: absolute; bottom: 20px; right: 30px; color: var(--accent-brown); font-family: serif; }
+    </style>
+</head>
+<body>
+
+    <div class="book-page">
+        <a href="index.html" class="back-link">← 返回目錄</a>
+        
+        <div class="page-header">
+            <h2>會員壽星紀錄</h2>
+            <p id="today-display" class="current-month-info"></p>
+        </div>
+
+        <div id="content">
+            <div class="loading">正在翻閱生日冊...</div>
+        </div>
+
+        <div class="page-footer">P. 12</div>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
+
+        // 取得當前月份 (1-12)
+        const currentMonth = new Date().getMonth() + 1;
+        document.getElementById('today-display').textContent = `本日日期：2025 年 ${currentMonth} 月`;
+
+        async function loadData(sheetType) {
+            try {
+                const response = await fetch(`${GAS_URL}?type=${sheetType}`);
+                return await response.json();
+            } catch (error) {
+                return null;
+            }
+        }
+
+        async function initPage() {
+            // 讀取 Google Sheets 中名稱為 "birthdays" 的分頁
+            const data = await loadData("birthdays");
+            const container = document.getElementById('content');
+
+            if (!data) {
+                container.innerHTML = '<div class="loading">暫無生日紀錄</div>';
+                return;
+            }
+
+            let html = '<ul class="data-list">';
+            data.forEach(item => {
+                // 假設 Excel 中的「月份」欄位是數字或包含月份的字串
+                const bMonth = parseInt(item.月份);
+                const isThisMonth = (bMonth === currentMonth);
+
+                html += `
+                    <li class="data-item ${isThisMonth ? 'is-birthday' : ''}">
+                        <span class="date-label">${item.月份}月${item.日期}日</span>
+                        <span class="name-label">
+                            ${item.姓名}
+                            ${isThisMonth ? '<span class="birthday-tag">🎂</span>' : ''}
+                        </span>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        initPage();
+    </script>
+</body>
+</html>

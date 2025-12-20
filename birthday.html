@@ -124,7 +124,7 @@
         async function loadData() {
             try {
                 // 強制不使用快取以確保即時性
-                const response = await fetch(`${GAS_URL}?type=birthday`, { cache: 'no-cache' });
+                const response = await fetch(`${GAS_URL}?type=birthdays`, { cache: 'no-cache' });
                 return await response.json();
             } catch (error) {
                 console.error("讀取失敗:", error);

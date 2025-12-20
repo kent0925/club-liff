@@ -6,61 +6,93 @@
     <title>P.05 每月爐主名冊</title>
     <style>
         :root {
-            --book-paper: #f9f4e8;
+            --book-paper: #f9f4e8; /* 暖色調紙張 */
             --ink-color: #3e3a39;
             --accent-brown: #8c7662;
+            --page-border: #e0d6c3;
         }
 
         body {
             background-color: #d1cfc7;
-            font-family: "PingFang TC", serif;
+            font-family: "PingFang TC", "Hiragino Sans GB", "Microsoft JhengHei", serif;
             margin: 0;
             display: flex;
             justify-content: center;
-            padding: 20px 10px;
+            min-height: 100vh;
+            padding: 20px 15px;
         }
 
+        /* 模擬書頁的容器 */
         .book-page {
             background-color: var(--book-paper);
             width: 100%;
-            max-width: 400px;
-            min-height: 90vh;
-            padding: 30px;
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+            max-width: 450px;
+            padding: 40px 25px;
+            box-shadow: 
+                2px 2px 10px rgba(0,0,0,0.1),
+                0 0 40px rgba(0,0,0,0.05) inset; /* 內陰影增加紙張凹陷感 */
             position: relative;
+            border: 1px solid var(--page-border);
+            border-radius: 2px;
+        }
+
+        /* 左側模擬書脊線條 */
+        .book-page::before {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(0,0,0,0.05);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
 
         .back-link {
             text-decoration: none;
             color: var(--accent-brown);
             font-size: 14px;
-            display: block;
-            margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 30px;
+            transition: 0.3s;
         }
+
+        .back-link:hover { opacity: 0.7; }
 
         .page-header {
             text-align: center;
-            border-bottom: 1px solid var(--accent-brown);
+            border-bottom: 2px double var(--accent-brown); /* 雙線條增加復古感 */
             margin-bottom: 30px;
+            padding-bottom: 15px;
         }
 
         h2 {
             color: var(--ink-color);
-            letter-spacing: 3px;
+            letter-spacing: 5px; /* 字距拉開更有設計感 */
+            margin: 0;
+            font-size: 24px;
         }
 
-        /* 內容清單風格 */
+        /* 爐主清單美化 */
         .data-list {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
 
         .data-item {
             display: flex;
             justify-content: space-between;
-            padding: 15px 0;
-            border-bottom: 1px dotted #ccc;
             align-items: center;
+            padding: 18px 5px;
+            border-bottom: 1px dotted var(--accent-brown);
+            transition: background 0.2s;
+        }
+
+        /* 點擊時的視覺回饋 */
+        .data-item:active {
+            background-color: rgba(140, 118, 98, 0.05);
         }
 
         .month-label {
@@ -68,77 +100,99 @@
             font-style: italic;
             color: var(--accent-brown);
             font-size: 18px;
+            font-weight: 500;
         }
 
         .name-label {
             font-size: 18px;
-            font-weight: bold;
+            font-weight: 600;
             color: var(--ink-color);
+            position: relative;
+        }
+
+        /* 在名字前加一個小點綴 */
+        .name-label::before {
+            content: "🔖";
+            font-size: 12px;
+            margin-right: 8px;
+            opacity: 0.6;
         }
 
         .loading, .error {
             text-align: center;
-            padding: 40px;
-            color: #888;
+            padding: 50px 0;
+            color: #8c7662;
             font-style: italic;
+            letter-spacing: 2px;
         }
 
         .page-footer {
-            position: absolute;
-            bottom: 20px;
-            right: 30px;
+            margin-top: 50px;
+            text-align: center;
             color: var(--accent-brown);
-            font-family: serif;
+            font-family: "Georgia", serif;
+            font-size: 14px;
+            border-top: 1px solid var(--page-border);
+            padding-top: 15px;
         }
     </style>
 </head>
 <body>
 
     <div class="book-page">
-        <a href="index.html" class="back-link">← 返回目錄</a>
+        <a href="index.html" class="back-link">⇠ 返回目錄</a>
         
         <div class="page-header">
             <h2>每月爐主名冊</h2>
-            <p style="font-size: 12px; color: #999;">RECORD OF HOSTS 2025</p>
+            <p style="font-size: 11px; color: #a39485; margin: 5px 0 0 0; letter-spacing: 2px;">THE CHOSEN HOSTS OF 2025</p>
         </div>
 
         <div id="content">
             <div class="loading">正在翻開紀錄...</div>
         </div>
 
-        <div class="page-footer">P. 05</div>
+        <div class="page-footer">Page — 05</div>
     </div>
 
     <script>
-        // 1. 請替換成你部署好的 GAS 網址
         const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
 
         async function loadData(sheetType) {
             try {
                 const response = await fetch(`${GAS_URL}?type=${sheetType}`);
-                if (!response.ok) throw new Error('網路回應不正確');
+                if (!response.ok) throw new Error('Network error');
                 return await response.json();
             } catch (error) {
-                console.error("讀取失敗:", error);
+                console.error("Fetch failed:", error);
                 return null;
             }
         }
 
         async function initPage() {
-            // 呼叫 loadData 並指定讀取 "hosts" 工作表
             const data = await loadData("hosts");
             const container = document.getElementById('content');
+            const weekDays = ["日", "一", "二", "三", "四", "五", "六"];
 
-            if (!data) {
-                container.innerHTML = '<div class="error">紀錄遺失，請檢查連線</div>';
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="error">扉頁空白，尚無紀錄</div>';
                 return;
             }
 
             let html = '<ul class="data-list">';
             data.forEach(item => {
+                let displayDate = item.月份;
+                
+                // 解析 ISO 日期
+                if (typeof item.月份 === 'string' && item.月份.includes('T')) {
+                    const dObj = new Date(item.月份);
+                    if (!isNaN(dObj)) {
+                        displayDate = `${dObj.getMonth()+1}/${dObj.getDate()} (${weekDays[dObj.getDay()]})`;
+                    }
+                }
+
                 html += `
                     <li class="data-item">
-                        <span class="month-label">${item.月份 || 'Unknown'}</span>
+                        <span class="month-label">${displayDate}</span>
                         <span class="name-label">${item.姓名 || '未定'}</span>
                     </li>
                 `;
@@ -147,7 +201,6 @@
             container.innerHTML = html;
         }
 
-        // 執行初始化
         initPage();
     </script>
 </body>

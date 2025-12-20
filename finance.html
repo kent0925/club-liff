@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P.28 會內年度帳冊</title>
+    <title>P.28 會內帳冊 (PDF)</title>
     <style>
         :root {
             --book-paper: #f9f4e8;
             --ink-color: #3e3a39;
             --accent-brown: #8c7662;
-            --income-blue: #2d5a27; /* 收入色 */
-            --expense-red: #a94442; /* 支出色 */
         }
 
         body {
@@ -25,59 +23,46 @@
         .book-page {
             background-color: var(--book-paper);
             width: 100%;
-            max-width: 450px;
+            max-width: 400px;
             min-height: 90vh;
-            padding: 25px;
+            padding: 30px;
             box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
             position: relative;
         }
 
-        .back-link { text-decoration: none; color: var(--accent-brown); font-size: 14px; display: block; margin-bottom: 15px; }
+        .back-link { text-decoration: none; color: var(--accent-brown); font-size: 14px; display: block; margin-bottom: 20px; }
 
-        .page-header { text-align: center; border-bottom: 2px solid var(--accent-brown); margin-bottom: 20px; }
+        .page-header { text-align: center; border-bottom: 1px solid var(--accent-brown); margin-bottom: 30px; }
 
-        /* 月份切換按鈕區 */
-        .month-selector {
+        .pdf-list { list-style: none; padding: 0; }
+
+        .pdf-item {
             display: flex;
-            overflow-x: auto;
-            gap: 10px;
-            padding: 10px 0;
-            margin-bottom: 20px;
-            -webkit-overflow-scrolling: touch;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px dotted var(--accent-brown);
         }
 
-        .month-btn {
-            padding: 5px 15px;
+        .pdf-info { display: flex; align-items: center; }
+
+        .pdf-icon { font-size: 24px; margin-right: 15px; }
+
+        .pdf-title { font-size: 16px; color: var(--ink-color); font-weight: 500; }
+
+        .view-btn {
+            background-color: transparent;
             border: 1px solid var(--accent-brown);
-            background: none;
             color: var(--accent-brown);
-            border-radius: 15px;
-            white-space: nowrap;
-            cursor: pointer;
+            padding: 5px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 13px;
         }
 
-        .month-btn.active {
-            background: var(--accent-brown);
-            color: white;
-        }
+        .view-btn:active { background-color: var(--accent-brown); color: white; }
 
-        /* 帳目列表 */
-        .finance-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .finance-table th { border-bottom: 1px solid var(--accent-brown); padding: 10px 5px; text-align: left; }
-        .finance-table td { padding: 12px 5px; border-bottom: 1px dotted #ccc; }
-
-        .amount { text-align: right; font-family: "Georgia", serif; font-weight: bold; }
-        .income { color: var(--income-blue); }
-        .expense { color: var(--expense-red); }
-
-        .total-box {
-            margin-top: 20px;
-            padding: 15px;
-            border: 2px double var(--accent-brown);
-            text-align: right;
-        }
-
-        .page-footer { position: absolute; bottom: 15px; right: 25px; color: var(--accent-brown); font-family: serif; }
+        .page-footer { position: absolute; bottom: 20px; right: 30px; color: var(--accent-brown); font-family: serif; }
     </style>
 </head>
 <body>
@@ -86,95 +71,51 @@
         <a href="index.html" class="back-link">← 返回目錄</a>
         
         <div class="page-header">
-            <h2>會內年度帳冊</h2>
-            <p style="font-size: 12px; letter-spacing: 1px;">FINANCIAL RECORD 2025</p>
+            <h2>會內帳冊紀錄</h2>
+            <p style="font-size: 12px; color: #999;">PDF ARCHIVES 2025</p>
         </div>
 
-        <div class="month-selector" id="month-tabs">
-            </div>
-
-        <div id="finance-content">
-            <table class="finance-table">
-                <thead>
-                    <tr>
-                        <th width="20%">日期</th>
-                        <th width="50%">項目</th>
-                        <th width="30%" style="text-align: right;">金額</th>
-                    </tr>
-                </thead>
-                <tbody id="finance-list">
-                    </tbody>
-            </table>
-
-            <div class="total-box">
-                <span style="font-size: 12px;">該月小計：</span>
-                <span id="monthly-total" style="font-size: 20px; font-weight: bold;">$ 0</span>
-            </div>
+        <div id="pdf-container">
+            <ul class="pdf-list" id="list-content">
+                <li style="text-align:center; color:#888;">正在檢索檔案...</li>
+            </ul>
         </div>
 
         <div class="page-footer">P. 28</div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
-        let allData = [];
+        const GAS_URL = "你的_GAS_網頁應用程式_URL";
 
-        // 1. 初始化月份按鈕 (從 2025/01 到現在)
-        function initMonthTabs() {
-            const tabs = document.getElementById('month-tabs');
-            const currentMonth = new Date().getMonth() + 1;
-            
-            for (let i = 1; i <= currentMonth; i++) {
-                const mStr = i.toString().padStart(2, '0');
-                const btn = document.createElement('button');
-                btn.className = `month-btn ${i === currentMonth ? 'active' : ''}`;
-                btn.textContent = `2025/${mStr}`;
-                btn.onclick = () => filterMonth(i, btn);
-                tabs.appendChild(btn);
-            }
-        }
-
-        async function loadData() {
+        async function fetchPdfList() {
             try {
                 const response = await fetch(`${GAS_URL}?type=finance`);
-                allData = await response.json();
-                const currentMonth = new Date().getMonth() + 1;
-                filterMonth(currentMonth); // 預設顯示當月
+                const data = await response.json();
+                renderList(data);
             } catch (error) {
-                document.getElementById('finance-list').innerHTML = '<tr><td colspan="3" style="text-align:center;">讀取帳冊失敗</td></tr>';
+                document.getElementById('list-content').innerHTML = "<li>讀取檔案失敗</li>";
             }
         }
 
-        function filterMonth(month, btnElement) {
-            // 切換按鈕樣式
-            if (btnElement) {
-                document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('active'));
-                btnElement.classList.add('active');
-            }
-
-            const listBody = document.getElementById('finance-list');
-            let filtered = allData.filter(item => parseInt(item.月份) === month);
-            let total = 0;
+        function renderList(data) {
+            const list = document.getElementById('list-content');
             let html = "";
-
-            filtered.forEach(item => {
-                const amt = parseFloat(item.金額) || 0;
-                total += amt;
+            
+            data.forEach(item => {
                 html += `
-                    <tr>
-                        <td>${item.日期}</td>
-                        <td>${item.項目}</td>
-                        <td class="amount ${amt >= 0 ? 'income' : 'expense'}">${amt >= 0 ? '+' : ''}${amt.toLocaleString()}</td>
-                    </tr>
+                    <li class="pdf-item">
+                        <div class="pdf-info">
+                            <span class="pdf-icon">📄</span>
+                            <span class="pdf-title">${item.月份}月 財務收支表</span>
+                        </div>
+                        <a href="${item.檔案連結}" class="view-btn" target="_blank">查閱</a>
+                    </li>
                 `;
             });
-
-            listBody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;">本月尚無紀錄</td></tr>';
-            document.getElementById('monthly-total').textContent = `$ ${total.toLocaleString()}`;
+            list.innerHTML = html;
         }
 
-        initMonthTabs();
-        loadData();
+        fetchPdfList();
     </script>
 </body>
 </html>

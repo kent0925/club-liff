@@ -3,150 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P.12 會員壽星紀錄</title>
+    <title>P.06 會員生日月份</title>
     <style>
         :root {
             --book-paper: #f9f4e8;
             --ink-color: #3e3a39;
             --accent-brown: #8c7662;
-            --birthday-red: #d9534f;
+            --page-border: #e0d6c3;
+            --highlight-gold: #b89b72;
         }
 
         body {
             background-color: #d1cfc7;
-            font-family: "PingFang TC", serif;
+            font-family: "PingFang TC", "Microsoft JhengHei", serif;
             margin: 0;
             display: flex;
             justify-content: center;
-            padding: 20px 10px;
+            min-height: 100vh;
+            padding: 20px 15px;
         }
 
         .book-page {
             background-color: var(--book-paper);
             width: 100%;
-            max-width: 400px;
-            min-height: 90vh;
-            padding: 30px;
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+            max-width: 450px;
+            padding: 40px 25px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1), 0 0 40px rgba(0,0,0,0.05) inset;
             position: relative;
+            border: 1px solid var(--page-border);
         }
 
-        .back-link {
-            text-decoration: none;
-            color: var(--accent-brown);
-            font-size: 14px;
-            display: block;
-            margin-bottom: 20px;
-        }
+        .back-link { text-decoration: none; color: var(--accent-brown); font-size: 14px; display: block; margin-bottom: 25px; }
+        .page-header { text-align: center; border-bottom: 2px double var(--accent-brown); margin-bottom: 25px; padding-bottom: 15px; }
+        h2 { color: var(--ink-color); letter-spacing: 5px; margin: 0; font-size: 24px; }
 
-        .page-header {
-            text-align: center;
-            border-bottom: 1px solid var(--accent-brown);
-            margin-bottom: 30px;
-        }
+        .data-list { list-style: none; padding: 0; margin: 0; }
 
-        h2 { color: var(--ink-color); letter-spacing: 3px; margin-bottom: 5px; }
-        
-        .current-month-info {
-            font-size: 14px;
-            color: var(--accent-brown);
-            margin-bottom: 20px;
-            text-align: center;
-            font-style: italic;
-        }
-
-        .data-list { list-style: none; padding: 0; }
-
+        /* 一般壽星樣式 */
         .data-item {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px dotted #ccc;
-            align-items: center;
+            align-items: flex-start;
+            padding: 15px 5px;
+            border-bottom: 1px dotted var(--accent-brown);
         }
 
-        /* 壽星特別樣式 */
-        .is-birthday {
-            background-color: rgba(217, 83, 79, 0.05);
+        /* 本月壽星特別強調樣式 */
+        .data-item.current-month {
+            background-color: rgba(184, 155, 114, 0.1);
+            border-left: 4px solid var(--highlight-gold);
+            padding-left: 10px;
         }
 
-        .date-label {
-            font-family: "Georgia", serif;
-            color: var(--accent-brown);
-            font-size: 16px;
+        .month-label { 
+            font-family: "Georgia", serif; 
+            font-style: italic; 
+            color: var(--accent-brown); 
+            font-size: 18px; 
+            min-width: 50px;
         }
 
-        .name-label {
-            font-size: 17px;
-            color: var(--ink-color);
+        .name-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: right;
         }
 
-        .birthday-tag {
-            color: var(--birthday-red);
-            font-weight: bold;
-            margin-left: 5px;
+        .name-label { font-size: 18px; font-weight: 600; color: var(--ink-color); margin-bottom: 4px; }
+        .note-text { font-size: 18px; color: var(--accent-brown); font-style: italic; opacity: 0.9; }
+
+        .badge {
+            font-size: 11px;
+            background: var(--highlight-gold);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            display: inline-block;
         }
 
-        .loading { text-align: center; padding: 40px; color: #888; font-style: italic; }
-        .page-footer { position: absolute; bottom: 20px; right: 30px; color: var(--accent-brown); font-family: serif; }
+        .loading { text-align: center; padding: 50px; color: var(--accent-brown); font-style: italic; }
+        .page-footer { margin-top: 50px; text-align: center; color: var(--accent-brown); font-family: "Georgia", serif; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <div class="book-page">
-        <a href="index.html" class="back-link">← 返回目錄</a>
-        
+        <a href="index.html" class="back-link">⇠ 返回目錄</a>
         <div class="page-header">
-            <h2>會員壽星紀錄</h2>
-            <p id="today-display" class="current-month-info"></p>
+            <h2>會員生日月份</h2>
+            <p id="current-date-tip" style="font-size: 11px; color: #a39485; margin: 5px 0 0 0; letter-spacing: 2px;"></p>
         </div>
 
         <div id="content">
-            <div class="loading">正在翻閱生日冊...</div>
+            <div class="loading">正在查閱生日名冊...</div>
         </div>
 
-        <div class="page-footer">P. 12</div>
+        <div class="page-footer">Page — 06</div>
     </div>
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
 
-        // 取得當前月份 (1-12)
-        const currentMonth = new Date().getMonth() + 1;
-        document.getElementById('today-display').textContent = `本日日期：2025 年 ${currentMonth} 月`;
-
-        async function loadData(sheetType) {
+        async function loadData() {
             try {
-                const response = await fetch(`${GAS_URL}?type=${sheetType}`);
+                const response = await fetch(`${GAS_URL}?type=birthday`);
                 return await response.json();
             } catch (error) {
+                console.error("讀取失敗:", error);
                 return null;
             }
         }
 
         async function initPage() {
-            // 讀取 Google Sheets 中名稱為 "birthdays" 的分頁
-            const data = await loadData("birthdays");
             const container = document.getElementById('content');
+            const data = await loadData();
+            const now = new Date();
+            const currentMonth = now.getMonth() + 1; // 1-12
 
-            if (!data) {
-                container.innerHTML = '<div class="loading">暫無生日紀錄</div>';
+            document.getElementById('current-date-tip').innerText = `CURRENT MONTH: ${currentMonth}月`;
+
+            if (!data || !Array.isArray(data)) {
+                container.innerHTML = '<div class="loading">尚無壽星資料</div>';
                 return;
             }
 
-            let html = '<ul class="data-list">';
+            // --- 排序邏輯：將本月壽星移至最上方 ---
+            const thisMonthStars = [];
+            const otherMonthStars = [];
+
             data.forEach(item => {
-                // 假設 Excel 中的「月份」欄位是數字或包含月份的字串
-                const bMonth = parseInt(item.月份);
-                const isThisMonth = (bMonth === currentMonth);
+                // 假設試算表「月份」欄位填的是純數字 (如 12) 或日期物件
+                let m = parseInt(item.月份);
+                if (typeof item.月份 === 'string' && item.月份.includes('T')) {
+                    m = new Date(item.月份).getMonth() + 1;
+                }
+
+                if (m === currentMonth) {
+                    thisMonthStars.push({...item, m});
+                } else {
+                    otherMonthStars.push({...item, m});
+                }
+            });
+
+            // 其餘月份按數字大小排序
+            otherMonthStars.sort((a, b) => a.m - b.m);
+
+            const sortedData = [...thisMonthStars, ...otherMonthStars];
+
+            let html = '<ul class="data-list">';
+            sortedData.forEach(item => {
+                const isThisMonth = item.m === currentMonth;
+                const noteContent = (item.備註 && String(item.備註).trim() !== "") 
+                    ? `<span class="note-text">※ ${item.備註}</span>` 
+                    : "";
 
                 html += `
-                    <li class="data-item ${isThisMonth ? 'is-birthday' : ''}">
-                        <span class="date-label">${item.月份}月${item.日期}日</span>
-                        <span class="name-label">
-                            ${item.姓名}
-                            ${isThisMonth ? '<span class="birthday-tag">🎂</span>' : ''}
-                        </span>
+                    <li class="data-item ${isThisMonth ? 'current-month' : ''}">
+                        <span class="month-label">${item.m}月</span>
+                        <div class="name-container">
+                            ${isThisMonth ? '<span class="badge">本月壽星 🎂</span>' : ''}
+                            <span class="name-label">${item.姓名 || '未填'}</span>
+                            ${noteContent}
+                        </div>
                     </li>
                 `;
             });

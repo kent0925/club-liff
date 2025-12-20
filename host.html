@@ -1,10 +1,69 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P.05 每月爐主名冊</title>
     <style>
-        /* ... 保留之前的樣式 ... */
+        :root {
+            --book-paper: #f9f4e8;
+            --ink-color: #3e3a39;
+            --accent-brown: #8c7662;
+            --page-border: #e0d6c3;
+        }
 
-        /* 新增備註區塊樣式 */
+        body {
+            background-color: #d1cfc7;
+            font-family: "PingFang TC", "Hiragino Sans GB", "Microsoft JhengHei", serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px 15px;
+        }
+
+        .book-page {
+            background-color: var(--book-paper);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px 25px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1), 0 0 40px rgba(0,0,0,0.05) inset;
+            position: relative;
+            border: 1px solid var(--page-border);
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--accent-brown);
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-header {
+            text-align: center;
+            border-bottom: 2px double var(--accent-brown);
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+        }
+
+        h2 { color: var(--ink-color); letter-spacing: 5px; margin: 0; font-size: 24px; }
+
+        .data-list { list-style: none; padding: 0; margin: 0; }
+
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 5px;
+            border-bottom: 1px dotted var(--accent-brown);
+        }
+
+        .month-label { font-family: "Georgia", serif; font-style: italic; color: var(--accent-brown); font-size: 18px; }
+        .name-label { font-size: 18px; font-weight: 600; color: var(--ink-color); }
+
+        /* 備註區塊樣式 */
         .notes-section {
             margin-top: 30px;
             padding: 15px;
@@ -13,23 +72,13 @@
             font-size: 14px;
             color: var(--ink-color);
             line-height: 1.6;
-            position: relative;
         }
 
-        .notes-title {
-            font-weight: bold;
-            color: var(--accent-brown);
-            margin-bottom: 5px;
-            display: block;
-            font-size: 13px;
-            letter-spacing: 1px;
-        }
+        .notes-title { font-weight: bold; color: var(--accent-brown); margin-bottom: 5px; display: block; font-size: 13px; }
+        .note-item { margin-bottom: 8px; display: block; font-style: italic; }
 
-        .note-item {
-            margin-bottom: 8px;
-            display: block;
-            font-style: italic; /* 營造手寫感 */
-        }
+        .loading, .error { text-align: center; padding: 50px 0; color: #8c7662; font-style: italic; }
+        .page-footer { margin-top: 50px; text-align: center; color: var(--accent-brown); font-family: "Georgia", serif; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -57,8 +106,20 @@
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
 
+        // 修正：必須定義 loadData 函式
+        async function loadData(sheetType) {
+            try {
+                const response = await fetch(`${GAS_URL}?type=${sheetType}`);
+                if (!response.ok) throw new Error('網路回應不正確');
+                return await response.json();
+            } catch (error) {
+                console.error("讀取失敗:", error);
+                return null;
+            }
+        }
+
         async function initPage() {
-            const data = await loadData("hosts");
+            const data = await loadData("hosts"); // 現在這裡不會報錯了
             const container = document.getElementById('content');
             const notesContainer = document.getElementById('notes-container');
             const notesContent = document.getElementById('notes-content');
@@ -75,7 +136,7 @@
             data.forEach(item => {
                 let displayDate = item.月份;
                 
-                // 解析日期
+                // 解析日期格式
                 if (typeof item.月份 === 'string' && item.月份.includes('T')) {
                     const dObj = new Date(item.月份);
                     if (!isNaN(dObj)) {
@@ -90,16 +151,15 @@
                     </li>
                 `;
 
-                // 如果該列有備註內容，就收集起來
+                // 修正：備註內的日期也使用漂亮的 displayDate
                 if (item.備註 && item.備註.trim() !== "") {
-                    notesHtml += `<span class="note-item">※ ${item.月份}：${item.備註}</span>`;
+                    notesHtml += `<span class="note-item">※ ${displayDate}：${item.備註}</span>`;
                 }
             });
 
             html += '</ul>';
             container.innerHTML = html;
 
-            // 如果有備註才顯示備註區塊
             if (notesHtml !== '') {
                 notesContainer.style.display = 'block';
                 notesContent.innerHTML = notesHtml;

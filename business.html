@@ -50,22 +50,33 @@
         }
 
         .info-row {
-            font-size: 14px;
-            color: #666;
-            margin: 6px 0;
+            font-size: 15px;
+            color: #555;
+            margin: 8px 0;
             line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
         }
 
-        /* 備註字體大小與姓名一致 */
+        .icon-label { margin-right: 8px; flex-shrink: 0; }
+
+        /* 連結樣式：地址與電話 */
+        .clickable-link {
+            color: #4285f4;
+            text-decoration: none;
+            border-bottom: 1px solid #4285f4;
+        }
+
         .biz-note {
             font-size: 18px;
             color: var(--accent-brown);
             font-style: italic;
-            margin: 12px 0;
+            margin: 15px 0;
             opacity: 0.9;
+            background: rgba(140, 118, 98, 0.05);
+            padding: 5px;
         }
 
-        /* 連結按鈕群組 */
         .link-group {
             display: flex;
             flex-wrap: wrap;
@@ -81,22 +92,12 @@
             padding: 6px 12px;
             border-radius: 4px;
             font-size: 13px;
-            display: flex;
-            align-items: center;
             transition: 0.2s;
         }
 
-        .link-btn:active {
-            background: var(--accent-brown);
-            color: #fff;
-        }
+        .link-btn:active { background: var(--accent-brown); color: #fff; }
 
-        .link-btn::before {
-            content: "🔗 ";
-            font-size: 10px;
-        }
-
-        .loading { text-align: center; padding: 50px; color: var(--accent-brown); font-style: italic; }
+        .loading { text-align: center; padding: 50px; color: var(--accent-brown); }
         .page-footer { margin-top: 50px; text-align: center; color: var(--accent-brown); font-family: "Georgia", serif; font-size: 14px; }
     </style>
 </head>
@@ -132,46 +133,53 @@
 
                 let html = '';
                 data.forEach(item => {
-                    if (!item.名稱) return;
+                    if (!item["名稱"]) return;
 
-                    // 收集最多 5 個連結
+                    // 處理地址連結
+                    let addressValue = item["地址"] || "";
+                    let addressHtml = addressValue || '私訊洽詢';
+                    if (addressValue && addressValue !== '私訊洽詢') {
+                        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressValue)}`;
+                        addressHtml = `<a href="${mapUrl}" target="_blank" class="clickable-link">${addressValue}</a>`;
+                    }
+
+                    // 處理電話連結
+                    let phoneValue = String(item["電話"] || "").trim();
+                    let phoneHtml = phoneValue ? `<a href="tel:${phoneValue}" class="clickable-link">${phoneValue}</a>` : "尚未提供";
+
+                    // 處理連結按鈕
                     let linksHtml = '';
                     for (let i = 1; i <= 5; i++) {
                         let linkVal = item[`連結${i}`];
                         if (linkVal && String(linkVal).startsWith('http')) {
-                            // 簡單判斷顯示文字
                             let label = "連結 " + i;
-                            if (linkVal.includes('line.me')) label = "LINE";
-                            if (linkVal.includes('facebook.com')) label = "FB";
-                            if (linkVal.includes('instagram.com')) label = "IG";
-                            if (linkVal.includes('google.com/maps')) label = "地圖";
-                            
-                            linksHtml += `<a href="${linkVal}" target="_blank" class="link-btn">${label}</a>`;
+                            const lwr = String(linkVal).toLowerCase();
+                            if (lwr.includes('line.me')) label = "LINE";
+                            else if (lwr.includes('facebook.com') || lwr.includes('fb.me')) label = "FB";
+                            else if (lwr.includes('instagram.com')) label = "IG";
+                            linksHtml += `<a href="${linkVal}" target="_blank" class="link-btn">🔗 ${label}</a>`;
                         }
                     }
 
-                    const noteDisplay = (item.備註 && String(item.備註).trim() !== "")
-                        ? `<div class="biz-note">※ ${item.備註}</div>`
+                    const noteDisplay = (item["備註"] && String(item["備註"]).trim() !== "")
+                        ? `<div class="biz-note">※ ${item["備註"]}</div>`
                         : "";
 
                     html += `
                         <div class="item-card">
-                            <span class="biz-name">🏢 ${item.名稱}</span>
-                            <div class="info-row">📍 地址：${item.地址 || '私訊洽詢'}</div>
+                            <span class="biz-name">🏢 ${item["名稱"]}</span>
+                            <div class="info-row"><span class="icon-label">📍</span><span>地址：${addressHtml}</span></div>
+                            <div class="info-row"><span class="icon-label">📞</span><span>電話：${phoneHtml}</span></div>
                             ${noteDisplay}
-                            <div class="link-group">
-                                ${linksHtml}
-                            </div>
+                            <div class="link-group">${linksHtml}</div>
                         </div>
                     `;
                 });
                 container.innerHTML = html;
-
             } catch (e) {
-                container.innerHTML = '<div class="loading">讀取失敗，請稍後再試</div>';
+                container.innerHTML = '<div class="loading">讀取失敗，請確認網路連線</div>';
             }
         }
-
         initPage();
     </script>
 </body>

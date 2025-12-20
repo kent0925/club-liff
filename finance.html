@@ -1,39 +1,180 @@
-<script>
-    // 1. 設定你的 GAS 網址（從 Google Apps Script 部署得到的）
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
-
-    // 2. 這是你問的函式：放在 script 的頂層或邏輯區
-    async function loadData(sheetType) {
-        try {
-            const response = await fetch(`${GAS_URL}?type=${sheetType}`);
-            const data = await response.json();
-            return data; // 回傳資料供後續呈現使用
-        } catch (error) {
-            console.error("資料讀取錯誤:", error);
-            return [];
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P.28 會內年度帳冊</title>
+    <style>
+        :root {
+            --book-paper: #f9f4e8;
+            --ink-color: #3e3a39;
+            --accent-brown: #8c7662;
+            --income-blue: #2d5a27; /* 收入色 */
+            --expense-red: #a94442; /* 支出色 */
         }
-    }
 
-    // 3. 實際執行：當頁面開啟時，呼叫 loadData 並渲染畫面
-    window.onload = async function() {
-        // 因為是爐主頁面，所以傳入 "hosts" (對應 Google Sheet 的工作表名稱)
-        const hostData = await loadData("finance"); 
-        
-        // 渲染邏輯
-        renderTable(hostData);
-    };
-
-    function renderTable(data) {
-        const listBody = document.getElementById('host-list');
-        if (data.length === 0) {
-            listBody.innerHTML = '<tr><td colspan="2">目前尚無資料</td></tr>';
-            return;
+        body {
+            background-color: #d1cfc7;
+            font-family: "PingFang TC", serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px 10px;
         }
+
+        .book-page {
+            background-color: var(--book-paper);
+            width: 100%;
+            max-width: 450px;
+            min-height: 90vh;
+            padding: 25px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .back-link { text-decoration: none; color: var(--accent-brown); font-size: 14px; display: block; margin-bottom: 15px; }
+
+        .page-header { text-align: center; border-bottom: 2px solid var(--accent-brown); margin-bottom: 20px; }
+
+        /* 月份切換按鈕區 */
+        .month-selector {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .month-btn {
+            padding: 5px 15px;
+            border: 1px solid var(--accent-brown);
+            background: none;
+            color: var(--accent-brown);
+            border-radius: 15px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .month-btn.active {
+            background: var(--accent-brown);
+            color: white;
+        }
+
+        /* 帳目列表 */
+        .finance-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .finance-table th { border-bottom: 1px solid var(--accent-brown); padding: 10px 5px; text-align: left; }
+        .finance-table td { padding: 12px 5px; border-bottom: 1px dotted #ccc; }
+
+        .amount { text-align: right; font-family: "Georgia", serif; font-weight: bold; }
+        .income { color: var(--income-blue); }
+        .expense { color: var(--expense-red); }
+
+        .total-box {
+            margin-top: 20px;
+            padding: 15px;
+            border: 2px double var(--accent-brown);
+            text-align: right;
+        }
+
+        .page-footer { position: absolute; bottom: 15px; right: 25px; color: var(--accent-brown); font-family: serif; }
+    </style>
+</head>
+<body>
+
+    <div class="book-page">
+        <a href="index.html" class="back-link">← 返回目錄</a>
         
-        let html = "";
-        data.forEach(item => {
-            html += `<tr><td>${item.月份}</td><td>${item.姓名}</td></tr>`;
-        });
-        listBody.innerHTML = html;
-    }
-</script>
+        <div class="page-header">
+            <h2>會內年度帳冊</h2>
+            <p style="font-size: 12px; letter-spacing: 1px;">FINANCIAL RECORD 2025</p>
+        </div>
+
+        <div class="month-selector" id="month-tabs">
+            </div>
+
+        <div id="finance-content">
+            <table class="finance-table">
+                <thead>
+                    <tr>
+                        <th width="20%">日期</th>
+                        <th width="50%">項目</th>
+                        <th width="30%" style="text-align: right;">金額</th>
+                    </tr>
+                </thead>
+                <tbody id="finance-list">
+                    </tbody>
+            </table>
+
+            <div class="total-box">
+                <span style="font-size: 12px;">該月小計：</span>
+                <span id="monthly-total" style="font-size: 20px; font-weight: bold;">$ 0</span>
+            </div>
+        </div>
+
+        <div class="page-footer">P. 28</div>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
+        let allData = [];
+
+        // 1. 初始化月份按鈕 (從 2025/01 到現在)
+        function initMonthTabs() {
+            const tabs = document.getElementById('month-tabs');
+            const currentMonth = new Date().getMonth() + 1;
+            
+            for (let i = 1; i <= currentMonth; i++) {
+                const mStr = i.toString().padStart(2, '0');
+                const btn = document.createElement('button');
+                btn.className = `month-btn ${i === currentMonth ? 'active' : ''}`;
+                btn.textContent = `2025/${mStr}`;
+                btn.onclick = () => filterMonth(i, btn);
+                tabs.appendChild(btn);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch(`${GAS_URL}?type=finance`);
+                allData = await response.json();
+                const currentMonth = new Date().getMonth() + 1;
+                filterMonth(currentMonth); // 預設顯示當月
+            } catch (error) {
+                document.getElementById('finance-list').innerHTML = '<tr><td colspan="3" style="text-align:center;">讀取帳冊失敗</td></tr>';
+            }
+        }
+
+        function filterMonth(month, btnElement) {
+            // 切換按鈕樣式
+            if (btnElement) {
+                document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('active'));
+                btnElement.classList.add('active');
+            }
+
+            const listBody = document.getElementById('finance-list');
+            let filtered = allData.filter(item => parseInt(item.月份) === month);
+            let total = 0;
+            let html = "";
+
+            filtered.forEach(item => {
+                const amt = parseFloat(item.金額) || 0;
+                total += amt;
+                html += `
+                    <tr>
+                        <td>${item.日期}</td>
+                        <td>${item.項目}</td>
+                        <td class="amount ${amt >= 0 ? 'income' : 'expense'}">${amt >= 0 ? '+' : ''}${amt.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+
+            listBody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;">本月尚無紀錄</td></tr>';
+            document.getElementById('monthly-total').textContent = `$ ${total.toLocaleString()}`;
+        }
+
+        initMonthTabs();
+        loadData();
+    </script>
+</body>
+</html>

@@ -22,6 +22,7 @@
             padding: 20px 15px;
         }
 
+        /* 模擬書頁容器 */
         .book-page {
             background-color: var(--book-paper);
             width: 100%;
@@ -30,6 +31,7 @@
             box-shadow: 2px 2px 10px rgba(0,0,0,0.1), 0 0 40px rgba(0,0,0,0.05) inset;
             position: relative;
             border: 1px solid var(--page-border);
+            border-radius: 2px;
         }
 
         .back-link {
@@ -50,32 +52,49 @@
 
         h2 { color: var(--ink-color); letter-spacing: 5px; margin: 0; font-size: 24px; }
 
+        /* 清單風格 */
         .data-list { list-style: none; padding: 0; margin: 0; }
 
         .data-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start; /* 讓多行備註時對齊頂部 */
             padding: 18px 5px;
             border-bottom: 1px dotted var(--accent-brown);
         }
 
-        .month-label { font-family: "Georgia", serif; font-style: italic; color: var(--accent-brown); font-size: 18px; }
-        .name-label { font-size: 18px; font-weight: 600; color: var(--ink-color); }
-
-        /* 備註區塊樣式 */
-        .notes-section {
-            margin-top: 30px;
-            padding: 15px;
-            background-color: rgba(140, 118, 98, 0.05);
-            border-left: 3px solid var(--accent-brown);
-            font-size: 14px;
-            color: var(--ink-color);
-            line-height: 1.6;
+        .month-label { 
+            font-family: "Georgia", serif; 
+            font-style: italic; 
+            color: var(--accent-brown); 
+            font-size: 18px; 
+            white-space: nowrap;
         }
 
-        .notes-title { font-weight: bold; color: var(--accent-brown); margin-bottom: 5px; display: block; font-size: 13px; }
-        .note-item { margin-bottom: 8px; display: block; font-style: italic; }
+        /* 姓名與備註容器 */
+        .name-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: right;
+            padding-left: 15px;
+        }
+
+        .name-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--ink-color);
+            margin-bottom: 4px;
+        }
+
+        /* 姓名後的備註樣式 */
+        .note-text {
+            font-size: 13px;
+            color: var(--accent-brown);
+            font-style: italic;
+            line-height: 1.4;
+            opacity: 0.85;
+        }
 
         .loading, .error { text-align: center; padding: 50px 0; color: #8c7662; font-style: italic; }
         .page-footer { margin-top: 50px; text-align: center; color: var(--accent-brown); font-family: "Georgia", serif; font-size: 14px; }
@@ -95,21 +114,20 @@
             <div class="loading">正在翻開紀錄...</div>
         </div>
 
-        <div id="notes-container" class="notes-section" style="display: none;">
-            <span class="notes-title">附註記事：</span>
-            <div id="notes-content"></div>
-        </div>
-
         <div class="page-footer">Page — 05</div>
     </div>
 
     <script>
+        // 請確保這是你最新的 GAS 部署網址
         const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
 
-        // 修正：必須定義 loadData 函式
+        // 核心抓取函式
         async function loadData(sheetType) {
             try {
-                const response = await fetch(`${GAS_URL}?type=${sheetType}`);
+                const response = await fetch(`${GAS_URL}?type=${sheetType}`, {
+                    method: 'GET',
+                    cache: 'no-cache'
+                });
                 if (!response.ok) throw new Error('網路回應不正確');
                 return await response.json();
             } catch (error) {
@@ -119,24 +137,26 @@
         }
 
         async function initPage() {
-            const data = await loadData("hosts"); // 現在這裡不會報錯了
             const container = document.getElementById('content');
-            const notesContainer = document.getElementById('notes-container');
-            const notesContent = document.getElementById('notes-content');
             const weekDays = ["日", "一", "二", "三", "四", "五", "六"];
 
-            if (!data || data.length === 0) {
+            // 呼叫資料
+            const data = await loadData("hosts");
+
+            if (!data || !Array.isArray(data)) {
                 container.innerHTML = '<div class="error">扉頁空白，尚無紀錄</div>';
                 return;
             }
 
             let html = '<ul class="data-list">';
-            let notesHtml = '';
-
+            
             data.forEach(item => {
+                // 過濾掉空行
+                if(!item.月份 && !item.姓名) return;
+
                 let displayDate = item.月份;
                 
-                // 解析日期格式
+                // 自動解析日期格式
                 if (typeof item.月份 === 'string' && item.月份.includes('T')) {
                     const dObj = new Date(item.月份);
                     if (!isNaN(dObj)) {
@@ -144,28 +164,27 @@
                     }
                 }
 
+                // 準備備註內容
+                const noteContent = (item.備註 && String(item.備註).trim() !== "") 
+                    ? `<span class="note-text">※ ${item.備註}</span>` 
+                    : "";
+
                 html += `
                     <li class="data-item">
                         <span class="month-label">${displayDate}</span>
-                        <span class="name-label">${item.姓名 || '未定'}</span>
+                        <div class="name-container">
+                            <span class="name-label">${item.姓名 || '未定'}</span>
+                            ${noteContent}
+                        </div>
                     </li>
                 `;
-
-                // 修正：備註內的日期也使用漂亮的 displayDate
-                if (item.備註 && item.備註.trim() !== "") {
-                    notesHtml += `<span class="note-item">※ ${displayDate}：${item.備註}</span>`;
-                }
             });
 
             html += '</ul>';
             container.innerHTML = html;
-
-            if (notesHtml !== '') {
-                notesContainer.style.display = 'block';
-                notesContent.innerHTML = notesHtml;
-            }
         }
 
+        // 啟動頁面
         initPage();
     </script>
 </body>

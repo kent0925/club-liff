@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P.06 會員生日月份</title>
+    <title>P.06 會員生日名冊</title>
     <style>
         :root {
             --book-paper: #f9f4e8;
@@ -11,6 +11,7 @@
             --accent-brown: #8c7662;
             --page-border: #e0d6c3;
             --highlight-gold: #b89b72;
+            --next-month-tan: #e8dfcc;
         }
 
         body {
@@ -37,69 +38,60 @@
         .page-header { text-align: center; border-bottom: 2px double var(--accent-brown); margin-bottom: 25px; padding-bottom: 15px; }
         h2 { color: var(--ink-color); letter-spacing: 5px; margin: 0; font-size: 24px; }
 
-        .data-list { list-style: none; padding: 0; margin: 0; }
+        /* 月份分組收摺樣式 */
+        .month-section { margin-bottom: 12px; }
+        
+        details { border-radius: 8px; overflow: hidden; border: 1px solid rgba(140, 118, 98, 0.2); }
+        
+        summary {
+            padding: 12px 15px;
+            background: rgba(140, 118, 98, 0.05);
+            color: var(--accent-brown);
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
 
+        summary::-webkit-details-marker { display: none; }
+        
+        /* 本月壽星高亮 */
+        .is-current-month summary {
+            background: var(--highlight-gold);
+            color: white;
+        }
+
+        /* 次月壽星稍微加深背景 */
+        .is-next-month summary {
+            background: var(--next-month-tan);
+            color: var(--accent-brown);
+            border: 1px solid var(--accent-brown);
+        }
+
+        summary::after { content: '＋'; font-size: 12px; }
+        details[open] summary::after { content: '－'; }
+
+        .data-list { list-style: none; padding: 0; margin: 0; background: rgba(255,255,255,0.4); }
+        
         .data-item {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            padding: 18px 5px;
+            align-items: center;
+            padding: 15px 12px;
             border-bottom: 1px dotted var(--accent-brown);
         }
 
-        /* 本月壽星的高亮樣式 */
-        .data-item.current-month {
-            background-color: rgba(184, 155, 114, 0.1);
-            border-left: 4px solid var(--highlight-gold);
-            padding-left: 10px;
-        }
-
-        /* 左側日期區塊 */
-        .date-box {
-            display: flex;
-            flex-direction: column;
-            min-width: 70px;
-        }
-
-        .month-label { 
-            font-family: "Georgia", serif; 
-            font-style: italic; 
-            color: var(--accent-brown); 
-            font-size: 18px; 
-            line-height: 1;
-        }
-
-        .day-label {
-            font-size: 14px;
-            color: #a39485;
-            margin-top: 4px;
-            letter-spacing: 1px;
-        }
-
-        /* 右側姓名與備註區塊 */
-        .name-container {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            text-align: right;
-            flex: 1;
-        }
-
-        .name-label { font-size: 18px; font-weight: 600; color: var(--ink-color); margin-bottom: 6px; }
-        .note-text { font-size: 18px; color: var(--accent-brown); font-style: italic; opacity: 0.9; line-height: 1.4; }
-
-        .badge {
-            font-size: 11px;
-            background: var(--highlight-gold);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-bottom: 6px;
-            display: inline-block;
-        }
+        .date-box { min-width: 40px; }
+        .day-label { font-family: "Georgia", serif; font-size: 18px; color: var(--accent-brown); }
+        
+        .name-container { flex: 1; text-align: right; }
+        .name-label { font-size: 17px; font-weight: 600; color: var(--ink-color); }
+        .note-text { display: block; font-size: 13px; color: var(--accent-brown); font-style: italic; margin-top: 2px; }
 
         .loading { text-align: center; padding: 50px; color: var(--accent-brown); font-style: italic; }
-        .page-footer { margin-top: 50px; text-align: center; color: var(--accent-brown); font-family: "Georgia", serif; font-size: 14px; }
+        .page-footer { margin-top: 50px; text-align: center; color: var(--accent-brown); font-family: serif; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -107,8 +99,8 @@
     <div class="book-page">
         <a href="index.html" class="back-link">⇠ 返回目錄</a>
         <div class="page-header">
-            <h2>會員生日月份</h2>
-            <p id="current-date-tip" style="font-size: 11px; color: #a39485; margin: 5px 0 0 0; letter-spacing: 2px;"></p>
+            <h2>會員生日名冊</h2>
+            <p id="current-month-tip" style="font-size: 11px; color: #a39485; margin: 5px 0 0 0; letter-spacing: 2px;"></p>
         </div>
 
         <div id="content">
@@ -123,11 +115,9 @@
 
         async function loadData() {
             try {
-                // 強制不使用快取以確保即時性
                 const response = await fetch(`${GAS_URL}?type=birthdays`, { cache: 'no-cache' });
                 return await response.json();
             } catch (error) {
-                console.error("讀取失敗:", error);
                 return null;
             }
         }
@@ -135,18 +125,20 @@
         async function initPage() {
             const container = document.getElementById('content');
             const rawData = await loadData();
+            
             const now = new Date();
             const currentMonth = now.getMonth() + 1;
+            const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
 
-            document.getElementById('current-date-tip').innerText = `CURRENT MONTH: ${currentMonth}月`;
+            document.getElementById('current-month-tip').innerText = `TODAY: ${now.getFullYear()} / ${currentMonth}月`;
 
             if (!rawData || !Array.isArray(rawData)) {
-                container.innerHTML = '<div class="loading">查無資料</div>';
+                container.innerHTML = '<div class="loading">暫無資料</div>';
                 return;
             }
 
-            // 1. 統一資料格式並過濾空行
-            const processedData = rawData
+            // 1. 格式化資料
+            const processed = rawData
                 .filter(item => item.姓名 && item.姓名.trim() !== "")
                 .map(item => ({
                     ...item,
@@ -154,49 +146,63 @@
                     d: parseInt(String(item.日期).replace(/[^0-9]/g, '')) || 0
                 }));
 
-            // 2. 分類與排序
-            const thisMonthStars = processedData.filter(item => item.m === currentMonth);
-            const otherMonthStars = processedData.filter(item => item.m !== currentMonth);
+            // 2. 分組
+            const groups = {};
+            for (let i = 1; i <= 12; i++) groups[i] = [];
+            processed.forEach(item => {
+                if (groups[item.m]) groups[item.m].push(item);
+            });
 
-            // 本月壽星依日期排序
-            thisMonthStars.sort((a, b) => a.d - b.d);
-            // 其他壽星依月份、日期排序
-            otherMonthStars.sort((a, b) => (a.m - b.m) || (a.d - b.d));
-
-            const finalData = [...thisMonthStars, ...otherMonthStars];
-
-            // 3. 渲染 HTML
-            if (finalData.length === 0) {
-                container.innerHTML = '<div class="loading">名冊目前是空白的</div>';
-                return;
+            // 3. 定義顯示順序：本月 -> 次月 -> 其他月份(1-12)
+            const monthOrder = [currentMonth, nextMonth];
+            for (let i = 1; i <= 12; i++) {
+                if (i !== currentMonth && i !== nextMonth) monthOrder.push(i);
             }
 
-            let html = '<ul class="data-list">';
-            finalData.forEach(item => {
-                const isThisMonth = item.m === currentMonth;
-                const noteContent = (item.備註 && String(item.備註).trim() !== "") 
-                    ? `<span class="note-text">※ ${item.備註}</span>` 
-                    : "";
+            // 4. 生成 HTML
+            let html = '';
+            monthOrder.forEach(m => {
+                const members = groups[m];
+                if (members.length === 0) return;
+
+                members.sort((a, b) => a.d - b.d);
+
+                const isCurrent = (m === currentMonth);
+                const isNext = (m === nextMonth);
+                
+                // 重點：本月跟次月都加上 open
+                const openAttr = (isCurrent || isNext) ? 'open' : '';
+                const sectionClass = isCurrent ? 'is-current-month' : (isNext ? 'is-next-month' : '');
+                const icon = isCurrent ? '🎂' : (isNext ? '🔔' : '');
 
                 html += `
-                    <li class="data-item ${isThisMonth ? 'current-month' : ''}">
-                        <div class="date-box">
-                            <span class="month-label">${item.m}月</span>
-                            <span class="day-label">${item.d > 0 ? item.d + '日' : ''}</span>
-                        </div>
-                        <div class="name-container">
-                            ${isThisMonth ? '<span class="badge">本月壽星 🎂</span>' : ''}
-                            <span class="name-label">${item.姓名}</span>
-                            ${noteContent}
-                        </div>
-                    </li>
+                    <div class="month-section ${sectionClass}">
+                        <details ${openAttr}>
+                            <summary>
+                                <span>${m}月 生日成員 ${icon}</span>
+                            </summary>
+                            <ul class="data-list">
+                                ${members.map(person => `
+                                    <li class="data-item">
+                                        <div class="date-box">
+                                            <span class="day-label">${person.d}日</span>
+                                        </div>
+                                        <div class="name-container">
+                                            <span class="name-label">${person.姓名}</span>
+                                            ${person.備註 ? `<span class="note-text">※ ${person.備註}</span>` : ''}
+                                        </div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </details>
+                    </div>
                 `;
             });
-            html += '</ul>';
-            container.innerHTML = html;
+
+            container.innerHTML = html || '<div class="loading">查無生日資料</div>';
         }
 
-        initPage();
+            initPage();
     </script>
 </body>
 </html>

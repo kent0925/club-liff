@@ -13,7 +13,7 @@
 
         body {
             background-color: #d1cfc7;
-            font-family: "PingFang TC", serif;
+            font-family: "PingFang TC", "Microsoft JhengHei", serif;
             margin: 0;
             display: flex;
             justify-content: center;
@@ -34,19 +34,44 @@
 
         .page-header { text-align: center; border-bottom: 1px solid var(--accent-brown); margin-bottom: 20px; }
 
-        /* 年份分隔線樣式 */
-        .year-divider {
-            background-color: var(--accent-brown);
-            color: white;
-            padding: 5px 15px;
-            font-size: 14px;
-            border-radius: 20px;
-            display: inline-block;
-            margin: 20px 0 10px 0;
-            font-family: "Georgia", serif;
+        /* 年份區塊 */
+        .year-section {
+            margin-bottom: 15px;
         }
 
-        .pdf-list { list-style: none; padding: 0; margin: 0; }
+        /* 收縮選單標題 */
+        summary {
+            background-color: var(--accent-brown);
+            color: white;
+            padding: 12px 15px;
+            font-size: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: "Georgia", serif;
+            transition: 0.3s;
+        }
+
+        summary:hover { background-color: #766352; }
+
+        /* 自定義箭頭動畫 */
+        summary::after {
+            content: '▼';
+            font-size: 10px;
+            transition: 0.3s;
+        }
+
+        details[open] summary::after {
+            transform: rotate(180deg);
+        }
+
+        /* 針對不同瀏覽器隱藏預設箭頭 */
+        summary::-webkit-details-marker { display: none; }
+
+        .pdf-list { list-style: none; padding: 5px 10px 0 10px; margin: 0; }
 
         .pdf-item {
             display: flex;
@@ -56,7 +81,9 @@
             border-bottom: 1px dotted var(--accent-brown);
         }
 
-        .pdf-title { font-size: 16px; color: var(--ink-color); }
+        .pdf-item:last-child { border-bottom: none; }
+
+        .pdf-title { font-size: 15px; color: var(--ink-color); }
 
         .view-btn {
             border: 1px solid var(--accent-brown);
@@ -65,6 +92,7 @@
             border-radius: 4px;
             text-decoration: none;
             font-size: 13px;
+            transition: 0.2s;
         }
 
         .view-btn:active { background-color: var(--accent-brown); color: white; }
@@ -98,7 +126,7 @@
                 const data = await response.json();
                 renderList(data);
             } catch (error) {
-                document.getElementById('list-content').innerHTML = "讀取檔案失敗";
+                document.getElementById('list-content').innerHTML = "<p style='text-align:center;'>資料讀取失敗</p>";
             }
         }
 
@@ -106,36 +134,51 @@
             const container = document.getElementById('list-content');
             container.innerHTML = "";
             
-            // 按照年份分組
+            if (!data || data.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:#888;'>目前尚無紀錄</p>";
+                return;
+            }
+
+            // 1. 年份分組
             const groupedData = {};
             data.forEach(item => {
-                if (!groupedData[item.年份]) {
-                    groupedData[item.年份] = [];
-                }
+                if (!groupedData[item.年份]) groupedData[item.年份] = [];
                 groupedData[item.年份].push(item);
             });
 
-            // 取得所有年份並由大到小排序 (最新的年份在上面)
+            // 2. 年份由大到小排序 (最新的排最前)
             const years = Object.keys(groupedData).sort((a, b) => b - a);
 
-            years.forEach(year => {
-                // 加入年份標籤
-                container.innerHTML += `<div class="year-divider">${year} Year</div>`;
+            years.forEach((year, index) => {
+                // 3. 判斷是否為最新年份：第一個(index 0)設為 open，其餘不設
+                const isOpen = index === 0 ? "open" : "";
                 
-                let ul = '<ul class="pdf-list">';
-                // 該年度月份由大到小排序
+                let sectionHTML = `
+                    <div class="year-section">
+                        <details ${isOpen}>
+                            <summary>${year} Year</summary>
+                            <ul class="pdf-list">
+                `;
+                
+                // 4. 月份由大到小排序
                 const sortedItems = groupedData[year].sort((a, b) => b.月份 - a.月份);
                 
                 sortedItems.forEach(item => {
-                    ul += `
+                    sectionHTML += `
                         <li class="pdf-item">
                             <span class="pdf-title">${item.月份}月 財務報表</span>
                             <a href="${item.檔案連結}" class="view-btn" target="_blank">閱讀 PDF</a>
                         </li>
                     `;
                 });
-                ul += '</ul>';
-                container.innerHTML += ul;
+
+                sectionHTML += `
+                            </ul>
+                        </details>
+                    </div>
+                `;
+                
+                container.innerHTML += sectionHTML;
             });
         }
 

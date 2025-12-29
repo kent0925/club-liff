@@ -38,9 +38,7 @@
         .page-header { text-align: center; border-bottom: 2px double var(--accent-brown); margin-bottom: 25px; padding-bottom: 15px; }
         h2 { color: var(--ink-color); letter-spacing: 5px; margin: 0; font-size: 24px; }
 
-        /* 月份分組收摺樣式 */
         .month-section { margin-bottom: 12px; }
-        
         details { border-radius: 8px; overflow: hidden; border: 1px solid rgba(140, 118, 98, 0.2); }
         
         summary {
@@ -57,24 +55,21 @@
 
         summary::-webkit-details-marker { display: none; }
         
-        /* 本月壽星高亮 */
-        .is-current-month summary {
-            background: var(--highlight-gold);
-            color: white;
+        /* 標題中的人數小標籤 */
+        .member-count {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-left: 5px;
+            font-weight: normal;
         }
 
-        /* 次月壽星稍微加深背景 */
-        .is-next-month summary {
-            background: var(--next-month-tan);
-            color: var(--accent-brown);
-            border: 1px solid var(--accent-brown);
-        }
+        .is-current-month summary { background: var(--highlight-gold); color: white; }
+        .is-next-month summary { background: var(--next-month-tan); color: var(--accent-brown); border: 1px solid var(--accent-brown); }
 
         summary::after { content: '＋'; font-size: 12px; }
         details[open] summary::after { content: '－'; }
 
         .data-list { list-style: none; padding: 0; margin: 0; background: rgba(255,255,255,0.4); }
-        
         .data-item {
             display: flex;
             justify-content: space-between;
@@ -117,9 +112,7 @@
             try {
                 const response = await fetch(`${GAS_URL}?type=birthdays`, { cache: 'no-cache' });
                 return await response.json();
-            } catch (error) {
-                return null;
-            }
+            } catch (error) { return null; }
         }
 
         async function initPage() {
@@ -137,7 +130,6 @@
                 return;
             }
 
-            // 1. 格式化資料
             const processed = rawData
                 .filter(item => item.姓名 && item.姓名.trim() !== "")
                 .map(item => ({
@@ -146,20 +138,17 @@
                     d: parseInt(String(item.日期).replace(/[^0-9]/g, '')) || 0
                 }));
 
-            // 2. 分組
             const groups = {};
             for (let i = 1; i <= 12; i++) groups[i] = [];
             processed.forEach(item => {
                 if (groups[item.m]) groups[item.m].push(item);
             });
 
-            // 3. 定義顯示順序：本月 -> 次月 -> 其他月份(1-12)
             const monthOrder = [currentMonth, nextMonth];
             for (let i = 1; i <= 12; i++) {
                 if (i !== currentMonth && i !== nextMonth) monthOrder.push(i);
             }
 
-            // 4. 生成 HTML
             let html = '';
             monthOrder.forEach(m => {
                 const members = groups[m];
@@ -169,8 +158,6 @@
 
                 const isCurrent = (m === currentMonth);
                 const isNext = (m === nextMonth);
-                
-                // 重點：本月跟次月都加上 open
                 const openAttr = (isCurrent || isNext) ? 'open' : '';
                 const sectionClass = isCurrent ? 'is-current-month' : (isNext ? 'is-next-month' : '');
                 const icon = isCurrent ? '🎂' : (isNext ? '🔔' : '');
@@ -179,7 +166,7 @@
                     <div class="month-section ${sectionClass}">
                         <details ${openAttr}>
                             <summary>
-                                <span>${m}月 生日成員 ${icon}</span>
+                                <span>${m}月 生日成員 ${icon} <span class="member-count">(${members.length}人)</span></span>
                             </summary>
                             <ul class="data-list">
                                 ${members.map(person => `
@@ -202,7 +189,7 @@
             container.innerHTML = html || '<div class="loading">查無生日資料</div>';
         }
 
-            initPage();
+        initPage();
     </script>
 </body>
 </html>

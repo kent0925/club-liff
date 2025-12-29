@@ -12,6 +12,7 @@
             --page-border: #e0d6c3;
             --highlight-gold: #b89b72;
             --next-month-tan: #e8dfcc;
+            --today-bg: rgba(255, 107, 107, 0.1); /* 當日壽星背景色 */
         }
 
         body {
@@ -55,16 +56,10 @@
 
         summary::-webkit-details-marker { display: none; }
         
-        /* 標題中的人數小標籤 */
-        .member-count {
-            font-size: 13px;
-            opacity: 0.8;
-            margin-left: 5px;
-            font-weight: normal;
-        }
+        .member-count { font-size: 13px; opacity: 0.8; margin-left: 5px; font-weight: normal; }
 
         .is-current-month summary { background: var(--highlight-gold); color: white; }
-        .is-next-month summary { background: var(--next-month-tan); color: var(--accent-brown); border: 1px solid var(--accent-brown); }
+        .is-next-month summary { background: var(--next-month-tan); color: var(--accent-brown); }
 
         summary::after { content: '＋'; font-size: 12px; }
         details[open] summary::after { content: '－'; }
@@ -78,7 +73,30 @@
             border-bottom: 1px dotted var(--accent-brown);
         }
 
-        .date-box { min-width: 40px; }
+        /* 當日壽星特別樣式 */
+        .is-today {
+            background-color: var(--today-bg);
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .today-badge {
+            display: inline-block;
+            background-color: #ff6b6b;
+            color: white;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .date-box { min-width: 45px; }
         .day-label { font-family: "Georgia", serif; font-size: 18px; color: var(--accent-brown); }
         
         .name-container { flex: 1; text-align: right; }
@@ -120,10 +138,12 @@
             const rawData = await loadData();
             
             const now = new Date();
+            const currentYear = now.getFullYear();
             const currentMonth = now.getMonth() + 1;
+            const todayDate = now.getDate();
             const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
 
-            document.getElementById('current-month-tip').innerText = `TODAY: ${now.getFullYear()} / ${currentMonth}月`;
+            document.getElementById('current-month-tip').innerText = `TODAY: ${currentYear} / ${currentMonth}月 / ${todayDate}日`;
 
             if (!rawData || !Array.isArray(rawData)) {
                 container.innerHTML = '<div class="loading">暫無資料</div>';
@@ -160,26 +180,31 @@
                 const isNext = (m === nextMonth);
                 const openAttr = (isCurrent || isNext) ? 'open' : '';
                 const sectionClass = isCurrent ? 'is-current-month' : (isNext ? 'is-next-month' : '');
-                const icon = isCurrent ? '🎂' : (isNext ? '🔔' : '');
-
+                
                 html += `
                     <div class="month-section ${sectionClass}">
                         <details ${openAttr}>
                             <summary>
-                                <span>${m}月 生日成員 ${icon} <span class="member-count">(${members.length}人)</span></span>
+                                <span>${m}月 生日成員 <span class="member-count">(${members.length}人)</span></span>
                             </summary>
                             <ul class="data-list">
-                                ${members.map(person => `
-                                    <li class="data-item">
-                                        <div class="date-box">
-                                            <span class="day-label">${person.d}日</span>
-                                        </div>
-                                        <div class="name-container">
-                                            <span class="name-label">${person.姓名}</span>
-                                            ${person.備註 ? `<span class="note-text">※ ${person.備註}</span>` : ''}
-                                        </div>
-                                    </li>
-                                `).join('')}
+                                ${members.map(person => {
+                                    // 判斷是否為當日壽星
+                                    const isToday = (person.m === currentMonth && person.d === todayDate);
+                                    
+                                    return `
+                                        <li class="data-item ${isToday ? 'is-today' : ''}">
+                                            <div class="date-box">
+                                                <span class="day-label">${person.d}日</span>
+                                            </div>
+                                            <div class="name-container">
+                                                ${isToday ? '<span class="today-badge">今日壽星 🎁</span>' : ''}
+                                                <span class="name-label">${person.姓名}</span>
+                                                ${person.備註 ? `<span class="note-text">※ ${person.備註}</span>` : ''}
+                                            </div>
+                                        </li>
+                                    `;
+                                }).join('')}
                             </ul>
                         </details>
                     </div>

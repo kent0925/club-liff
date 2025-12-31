@@ -9,6 +9,7 @@
             --book-paper: #f9f4e8;
             --ink-color: #3e3a39;
             --accent-brown: #8c7662;
+            --highlight-bg: rgba(140, 118, 98, 0.1);
         }
 
         body {
@@ -31,15 +32,11 @@
         }
 
         .back-link { text-decoration: none; color: var(--accent-brown); font-size: 14px; display: block; margin-bottom: 20px; }
-
         .page-header { text-align: center; border-bottom: 1px solid var(--accent-brown); margin-bottom: 20px; }
 
         /* 年份區塊 */
-        .year-section {
-            margin-bottom: 15px;
-        }
+        .year-section { margin-bottom: 15px; }
 
-        /* 收縮選單標題 */
         summary {
             background-color: var(--accent-brown);
             color: white;
@@ -56,35 +53,27 @@
         }
 
         summary:hover { background-color: #766352; }
-
-        /* 自定義箭頭動畫 */
-        summary::after {
-            content: '▼';
-            font-size: 10px;
-            transition: 0.3s;
-        }
-
-        details[open] summary::after {
-            transform: rotate(180deg);
-        }
-
-        /* 針對不同瀏覽器隱藏預設箭頭 */
+        summary::after { content: '▼'; font-size: 10px; transition: 0.3s; }
+        details[open] summary::after { transform: rotate(180deg); }
         summary::-webkit-details-marker { display: none; }
 
-        .pdf-list { list-style: none; padding: 5px 10px 0 10px; margin: 0; }
+        .pdf-list { list-style: none; padding: 0; margin: 0; }
 
         .pdf-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
+            padding: 12px 15px;
             border-bottom: 1px dotted var(--accent-brown);
         }
 
-        .pdf-item:last-child { border-bottom: none; }
+        /* 年度總表專屬樣式 */
+        .annual-item {
+            background-color: var(--highlight-bg);
+            border-bottom: 2px solid var(--accent-brown) !important;
+        }
 
         .pdf-title { font-size: 15px; color: var(--ink-color); }
-
         .view-btn {
             border: 1px solid var(--accent-brown);
             color: var(--accent-brown);
@@ -95,7 +84,8 @@
             transition: 0.2s;
         }
 
-        .view-btn:active { background-color: var(--accent-brown); color: white; }
+        /* 總表按鈕顯眼化 */
+        .view-btn.primary { background-color: var(--accent-brown); color: white; }
 
         .page-footer { position: absolute; bottom: 20px; right: 30px; color: var(--accent-brown); font-family: serif; }
     </style>
@@ -139,18 +129,15 @@
                 return;
             }
 
-            // 1. 年份分組
             const groupedData = {};
             data.forEach(item => {
                 if (!groupedData[item.年份]) groupedData[item.年份] = [];
                 groupedData[item.年份].push(item);
             });
 
-            // 2. 年份由大到小排序 (最新的排最前)
             const years = Object.keys(groupedData).sort((a, b) => b - a);
 
             years.forEach((year, index) => {
-                // 3. 判斷是否為最新年份：第一個(index 0)設為 open，其餘不設
                 const isOpen = index === 0 ? "open" : "";
                 
                 let sectionHTML = `
@@ -160,14 +147,29 @@
                             <ul class="pdf-list">
                 `;
                 
-                // 4. 月份由大到小排序
-                const sortedItems = groupedData[year].sort((a, b) => b.月份 - a.月份);
-                
-                sortedItems.forEach(item => {
+                // 排序：先把年度總表挑出來，剩下的月份從 12 到 1
+                const items = groupedData[year];
+                const annualReport = items.find(i => i.月份 == 0 || i.月份 == "年度");
+                const monthlyReports = items
+                    .filter(i => i.月份 != 0 && i.月份 != "年度")
+                    .sort((a, b) => b.月份 - a.月份);
+
+                // 如果有年度總表，放在最上面
+                if (annualReport) {
+                    sectionHTML += `
+                        <li class="pdf-item annual-item">
+                            <span class="pdf-title"><strong>★ ${year} 年度收支表</strong></span>
+                            <a href="${annualReport.檔案連結}" class="view-btn primary" target="_blank" rel="noopener">閱讀 PDF</a>
+                        </li>
+                    `;
+                }
+
+                // 列出月份
+                monthlyReports.forEach(item => {
                     sectionHTML += `
                         <li class="pdf-item">
                             <span class="pdf-title">${item.月份}月 財務報表</span>
-                            <a href="${item.檔案連結}" class="view-btn" target="_blank">閱讀 PDF</a>
+                            <a href="${item.檔案連結}" class="view-btn" target="_blank" rel="noopener">閱讀 PDF</a>
                         </li>
                     `;
                 });
@@ -177,7 +179,6 @@
                         </details>
                     </div>
                 `;
-                
                 container.innerHTML += sectionHTML;
             });
         }

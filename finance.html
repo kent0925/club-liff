@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> P.07 會內帳冊紀錄</title>
+    <title>P.07 會內帳冊紀錄</title>
     <style>
         :root {
             --book-paper: #f9f4e8;
@@ -35,7 +35,7 @@
 
         .year-section { margin-bottom: 15px; }
 
-        /* 核心：保留 details/summary 的原生縮放，僅調整佈局 */
+        /* 核心佈局：讓內容完全置中 */
         summary {
             background-color: var(--accent-brown);
             color: white;
@@ -45,36 +45,49 @@
             cursor: pointer;
             list-style: none;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between; /* 確保左右元件撐開 */
         }
 
-        /* 隱藏預設箭頭以便自定義 */
         summary::-webkit-details-marker { display: none; }
 
-        /* 在年份文字前加上小箭頭符號，模擬原本的縮放視覺 */
+        /* 左側箭頭：給予固定寬度以平衡右側按鈕 */
         summary::before {
-            content: '▼ ';
+            content: '▼';
             font-size: 10px;
-            margin-right: 8px;
+            width: 70px; /* 寬度需與右側按鈕區接近 */
             transition: 0.3s;
+            text-align: left;
         }
         details[open] summary::before {
             transform: rotate(180deg);
         }
 
-        /* 年度總表按鈕：放在 summary 內部右側 */
+        /* 年份文字：撐開空間並置中 */
+        .year-text-center {
+            flex: 1;
+            text-align: center;
+            font-family: "Georgia", serif;
+            font-weight: 500;
+        }
+
+        /* 年度總表按鈕區塊 */
+        .annual-btn-wrapper {
+            width: 70px; /* 固定寬度與左側 before 對應 */
+            display: flex;
+            justify-content: flex-end;
+        }
+
         .annual-btn-link {
             background-color: rgba(255, 255, 255, 0.9);
             color: var(--accent-brown);
             text-decoration: none;
-            padding: 3px 10px;
+            padding: 3px 8px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            /* 關鍵：點擊此處不觸發細節縮放 */
-            position: relative;
-            z-index: 10;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .pdf-list { list-style: none; padding: 5px 10px 0 10px; margin: 0; }
@@ -86,6 +99,7 @@
             border-bottom: 1px dotted var(--accent-brown);
         }
 
+        .pdf-title { font-size: 15px; color: var(--ink-color); }
         .view-btn {
             border: 1px solid var(--accent-brown);
             color: var(--accent-brown);
@@ -141,27 +155,26 @@
             const years = Object.keys(groupedData).sort((a, b) => b - a);
 
             years.forEach((year, index) => {
-                // 原有的邏輯：最新一年預設 open
                 const isOpen = index === 0 ? "open" : "";
                 const items = groupedData[year];
                 
-                // 區分總表與月份
                 const annualItem = items.find(i => i.月份 == 0 || i.月份 == "年度");
                 const monthlyItems = items
                     .filter(i => i.月份 != 0 && i.月份 != "年度")
                     .sort((a, b) => b.月份 - a.月份);
 
-                // 組合 Summary 的內容
-                let summaryContent = `<span>${year} Year</span>`;
-                if (annualItem) {
-                    // 使用 stopPropagation 確保點擊按鈕時，「縮放」功能不會被觸發
-                    summaryContent += `<a href="${annualItem.檔案連結}" class="annual-btn-link" target="_blank" onclick="event.stopPropagation()">年度總表</a>`;
-                }
+                // 組合 Summary 內容：保持左右平衡以讓標題置中
+                let annualBtnHTML = annualItem 
+                    ? `<div class="annual-btn-wrapper"><a href="${annualItem.檔案連結}" class="annual-btn-link" target="_blank" onclick="event.stopPropagation()">年度總表</a></div>`
+                    : `<div class="annual-btn-wrapper"></div>`;
 
                 let sectionHTML = `
                     <div class="year-section">
                         <details ${isOpen}>
-                            <summary>${summaryContent}</summary>
+                            <summary>
+                                <span class="year-text-center">${year} Year</span>
+                                ${annualBtnHTML}
+                            </summary>
                             <ul class="pdf-list">
                 `;
                 

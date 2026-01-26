@@ -107,7 +107,7 @@
         }
 
         /* Back Button */
-        .back-btn {
+        .back-link {
             position: absolute;
             left: 0;
             top: 5px;
@@ -119,9 +119,11 @@
             gap: 4px;
             transition: color 0.3s;
             font-weight: bold;
+            z-index: 20;
+            /* Ensure it is above the book spine effect */
         }
 
-        .back-btn:hover {
+        .back-link:hover {
             color: var(--stamp-red);
         }
 
@@ -348,8 +350,8 @@
 
             <div class="header">
                 <!-- Back Button -->
-                <a href="index.html" class="back-btn">
-                    <span>⬅</span> 回首頁
+                <a href="index.html" class="back-link">
+                    ⇠ 返回目錄
                 </a>
 
                 <h1 class="calligraphy">時光相簿</h1>

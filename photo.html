@@ -1,103 +1,565 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>大老二會時光相簿</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>國際大老二兄弟會 — 時光相簿</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <style>
-        body { 
-            background-color: #e5d3b3; 
+        :root {
+            --book-paper: #fdfaf1;
+            --ink-color: #2d2926;
+            --accent-brown: #7c6a5a;
+            --page-border: #e8dfcc;
+            --stamp-red: #b03a2e;
+        }
+
+        body {
+            background-color: #c4c2b9;
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 100%),
+                url('https://www.transparenttextures.com/patterns/dark-leather.png');
+            font-family: "Noto Sans TC", sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2.5rem 1rem;
+        }
+
+        .book-container {
+            width: 100%;
+            max-width: 480px;
+            /* Slightly wider for grid */
+            perspective: 1500px;
+        }
+
+        .book-cover {
+            background-color: var(--book-paper);
             background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
-            font-family: "Courier New", Courier, "Microsoft JhengHei", monospace;
-            color: #5d4037; margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
+            padding: 3.5rem 2.5rem;
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.3),
+                10px 0 30px rgba(0, 0, 0, 0.1),
+                inset 1px 0 0 white;
+            border: 1px solid var(--page-border);
+            border-radius: 4px 12px 12px 4px;
+            position: relative;
+            min-height: 750px;
+            /* Increased height for content */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        h2 { margin-top: 10px; letter-spacing: 1px; }
-        .hidden-input { display: none; }
+        /* 3D Spine Effect */
+        .book-cover::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(to right,
+                    rgba(0, 0, 0, 0.2) 0%,
+                    rgba(0, 0, 0, 0) 10%,
+                    rgba(0, 0, 0, 0.05) 15%,
+                    rgba(255, 255, 255, 0.4) 18%,
+                    rgba(0, 0, 0, 0) 25%);
+            z-index: 5;
+        }
 
-        /* 投稿按鈕 */
+        .calligraphy {
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            /* Reduced margin */
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: var(--ink-color);
+            letter-spacing: 0.15em;
+            margin: 0;
+            padding-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .header h1::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--accent-brown), transparent);
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: absolute;
+            left: 0;
+            top: 5px;
+            font-size: 14px;
+            color: var(--accent-brown);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.3s;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            color: var(--stamp-red);
+        }
+
+        .member-info {
+            font-size: 13px;
+            color: var(--accent-brown);
+            margin-top: 1rem;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+
+        /* Upload Section */
         .upload-card-btn {
-            background: #fffef0; width: 90%; max-width: 350px;
-            padding: 25px 20px; margin-bottom: 15px; border: 2px solid #5d4037;
-            text-align: center; cursor: pointer; box-shadow: 6px 6px 0px #5d4037;
-            transition: 0.2s; display: flex; flex-direction: column; align-items: center;
+            background: white;
+            border: 1px dashed var(--accent-brown);
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05);
         }
-        .upload-card-btn:active { transform: translate(3px, 3px); box-shadow: 3px 3px 0px #5d4037; }
-        .upload-card-btn h4 { margin: 0; font-size: 20px; color: #5d4037; }
-        .upload-card-btn span { font-size: 11px; margin-top: 8px; color: #8d6e63; line-height: 1.5; }
-        .video-remind { color: #b71c1c; font-weight: bold; }
 
-        #globalStatus { font-size: 12px; margin-bottom: 15px; color: #b71c1c; font-weight: bold; text-align: center; min-height: 18px; line-height: 1.4; white-space: pre-wrap; }
+        .upload-card-btn:hover {
+            border-color: var(--stamp-red);
+            background: #fffdf9;
+            transform: translateY(-2px);
+        }
 
-        /* 相簿網格 */
-        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; max-width: 400px; }
-        .card { background: #fffef0; padding: 10px; border: 1px solid #5d4037; cursor: pointer; text-align: center; box-shadow: 4px 4px 0px #5d4037; transition: 0.1s; }
-        .card:active { transform: scale(0.98); }
-        .card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
-        
-        .photo-item { background: white; padding: 10px 10px 25px 10px; border: 1px solid #ddd; position: relative; box-shadow: 3px 3px 8px rgba(0,0,0,0.1); cursor: pointer; }
-        .photo-item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #fafafa; }
-        .video-label { position: absolute; top: 10px; left: 10px; right: 10px; aspect-ratio: 1/1; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 40px; z-index: 1; pointer-events: none; }
+        .upload-card-btn h4 {
+            margin: 0;
+            color: var(--ink-color);
+            font-size: 18px;
+            font-weight: bold;
+        }
 
-        /* 預覽視窗 */
-        #viewerOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; }
-        #viewerContent { width: 95%; max-width: 500px; height: 70vh; position: relative; display: flex; align-items: center; justify-content: center; }
-        #closeBtn { position: absolute; top: -50px; right: 10px; color: white; font-size: 35px; cursor: pointer; font-weight: bold; padding: 10px; }
-        
-        .floating-menu { position: fixed; bottom: 25px; right: 20px; display: none; flex-direction: column; gap: 12px; z-index: 999; }
-        .fab { width: 55px; height: 55px; border-radius: 50%; background: #5d4037; color: #e5d3b3; border: 2px solid #e5d3b3; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .upload-card-btn span {
+            font-size: 11px;
+            color: #999;
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* Grid System */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            flex-grow: 1;
+            align-content: start;
+        }
+
+        .card {
+            background: white;
+            padding: 8px 8px 12px 8px;
+            border: 1px solid #eee;
+            box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.08);
+            /* Polaroid shadow */
+            cursor: pointer;
+            transition: transform 0.2s;
+            border-radius: 2px;
+            text-align: center;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .card img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            background: #f5f5f5;
+            filter: sepia(0.15);
+            /* Vintage feel */
+        }
+
+        .card-title {
+            font-size: 14px;
+            margin-top: 8px;
+            font-weight: bold;
+            color: var(--ink-color);
+        }
+
+        .card-sub {
+            font-size: 10px;
+            color: #999;
+        }
+
+        .photo-item {
+            position: relative;
+            background: white;
+            padding: 6px;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+
+        .photo-item img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 1.5rem;
+            font-size: 14px;
+            color: var(--accent-brown);
+        }
+
+        .page-btn {
+            background: none;
+            border: 1px solid var(--accent-brown);
+            border-radius: 4px;
+            padding: 4px 10px;
+            color: var(--accent-brown);
+            cursor: pointer;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Viewer */
+        #viewerOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #viewerContent {
+            width: 95%;
+            max-width: 500px;
+            max-height: 80vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #closeBtn {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .decoration-lines {
+            position: absolute;
+            top: 0;
+            right: 15px;
+            bottom: 0;
+            width: 1px;
+            border-right: 1px solid rgba(0, 0, 0, 0.03);
+            box-shadow: 2px 0 0 rgba(0, 0, 0, 0.02), 4px 0 0 rgba(0, 0, 0, 0.01);
+        }
+
+        .hidden-input {
+            display: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-msg {
+            color: var(--stamp-red);
+            font-size: 12px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
+
 <body>
 
-    <h2 id="pageTitle">🎞️ 大老二會時光相簿</h2>
-    <span id="userName" style="display:none;">訪客</span>
-    
-    <div id="globalStatus"></div>
+    <div class="book-container fade-in">
+        <div class="book-cover">
+            <div class="decoration-lines"></div>
 
-    <div class="upload-card-btn" onclick="document.getElementById('unifiedInput').click()">
-        <h4>📸 投稿照片</h4>
-        <span>支援多張照片選擇<br>系統自動處理 iPhone 格式<br><span class="video-remind">⚠️ 影片請直接傳至群組相簿</span></span>
-        <input type="file" id="unifiedInput" class="hidden-input" accept="image/*,.heic" multiple onchange="processUnifiedFiles(this)">
+            <div class="header">
+                <!-- Back Button -->
+                <a href="index.html" class="back-btn" onclick="handleBack(event)">
+                    <span>⬅</span> 回首頁
+                </a>
+
+                <h1 class="calligraphy">時光相簿</h1>
+                <div class="member-info">
+                    <span class="opacity-40">———</span>
+                    <span id="member-name">載入中...</span>
+                    <span class="opacity-40">———</span>
+                </div>
+            </div>
+
+            <!-- Global Status -->
+            <div id="globalStatus" class="status-msg"></div>
+
+            <!-- Upload Area -->
+            <div class="upload-card-btn" onclick="document.getElementById('unifiedInput').click()">
+                <h4>📸 投稿照片</h4>
+                <span>點此選擇照片 (支援多張/iPhone格式)<br><span class="text-red-800 text-xs">⚠️ 影片請直接傳至群組相簿</span></span>
+                <input type="file" id="unifiedInput" class="hidden-input" accept="image/*,.heic" multiple
+                    onchange="processUnifiedFiles(this)">
+            </div>
+
+            <!-- Content Area -->
+            <div id="loading" class="text-center text-stone-500 py-10">🚀 正在連接時光機...</div>
+
+            <div id="albumGrid" class="grid-container"></div>
+            <div id="photoGrid" class="grid-container" style="display:none;"></div>
+
+            <!-- Pagination (Only for Album Grid) -->
+            <div id="pagination" class="pagination" style="display:none">
+                <button class="page-btn" id="prevBtn" onclick="changePage(-1)">◀</button>
+                <span id="pageIndicator" style="font-family:Georgia, serif;">1 / 1</span>
+                <button class="page-btn" id="nextBtn" onclick="changePage(1)">▶</button>
+            </div>
+
+            <!-- In-Album Nav -->
+            <div id="albumControl" class="pagination" style="display:none">
+                <button class="page-btn" onclick="showAlbumList()">↩ 返回列表</button>
+            </div>
+
+            <div class="footer">
+                <p class="font-bold">亞太國際大老二兄弟會</p>
+                <p class="mt-1">© 2026 RECORDS</p>
+            </div>
+        </div>
     </div>
 
-    <div id="loading">🚀 正在連接時光機...</div>
-    <div id="albumGrid" class="grid-container"></div>
-    <div id="photoGrid" class="grid-container" style="display:none;"></div>
-
-    <div id="viewerOverlay"><div id="viewerContent"><span id="closeBtn" onclick="closeViewer()">✕</span></div></div>
-
-    <div id="floatingMenu" class="floating-menu">
-        <div class="fab" onclick="window.scrollTo({top:0, behavior:'smooth'})">TOP</div>
-        <div class="fab" onclick="showAlbumList()">返回<br>列表</div>
+    <!-- Viewer -->
+    <div id="viewerOverlay">
+        <div id="viewerContent">
+            <span id="closeBtn" onclick="closeViewer()">✕</span>
+        </div>
     </div>
 
     <script>
-        // ★★★ 請替換成你的新 GAS 網址 ★★★
-        const gasUrl = 'https://script.google.com/macros/s/AKfycbyBsFLlYt415vWiBipXhvycp_OMoQAJZdtfBi85IvQ29sfyCQphy6P0RrhMndpoLT33/exec'; 
-        const liffId = '2008678090-ZMqCkYFi'; 
+        // Config from previous version
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyBsFLlYt415vWiBipXhvycp_OMoQAJZdtfBi85IvQ29sfyCQphy6P0RrhMndpoLT33/exec';
+        const LIFF_ID = '2008678090-ZMqCkYFi';
+
         let allData = { categories: [], allFiles: [] };
+        let app = {
+            user: "訪客",
+            currentPage: 1,
+            itemsPerPage: 10
+        };
 
-        function getPureUserName() { return document.getElementById('userName').innerText.trim(); }
-        function isDuplicate(fileName) { return allData.allFiles.some(file => file.name === fileName); }
+        // Initialize
+        async function initLIFF() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    app.user = profile.displayName;
+                } else {
+                    liff.login(); // Force Login? or allow guest? Let's allow guest logic for now but name is visitor
+                }
+            } catch (err) {
+                console.log("LIFF Init Error or Local Env");
+            }
+            document.getElementById('member-name').innerText = app.user;
+            fetchData();
+        }
 
-        // 優化版壓縮圖片函式 (支援 HEIC)
+        async function fetchData() {
+            try {
+                const res = await fetch(GAS_URL);
+                allData = await res.json();
+                document.getElementById('loading').style.display = 'none';
+                renderAlbums();
+            } catch (e) {
+                document.getElementById('loading').innerText = "連線失敗，請重整頁面";
+            }
+        }
+
+        // --- Render Logic (Pagination) ---
+
+        function renderAlbums() {
+            // Hide Photos, Show Albums
+            document.getElementById('photoGrid').style.display = 'none';
+            document.getElementById('albumControl').style.display = 'none';
+            document.getElementById('albumGrid').style.display = 'grid';
+
+            // Prepare Data
+            const sortedCats = allData.categories.map(cat => {
+                const photos = allData.allFiles.filter(p => String(p.category) === String(cat.name));
+                const latestDate = photos.length > 0 ? photos[0].date : 0;
+                return { ...cat, latestDate, photos };
+            }).sort((a, b) => b.latestDate - a.latestDate);
+
+            // Pagination Logic
+            const totalPages = Math.ceil(sortedCats.length / app.itemsPerPage) || 1;
+            if (app.currentPage > totalPages) app.currentPage = totalPages;
+            if (app.currentPage < 1) app.currentPage = 1;
+
+            const start = (app.currentPage - 1) * app.itemsPerPage;
+            const end = start + app.itemsPerPage;
+            const visibleCats = sortedCats.slice(start, end);
+
+            // Render Grid
+            const grid = document.getElementById('albumGrid');
+            grid.innerHTML = "";
+
+            visibleCats.forEach(cat => {
+                if (cat.photos.length === 0) return; // Skip empty? User asked for folders.
+
+                const coverId = cat.photos[0].id;
+                const coverUrl = `https://drive.google.com/thumbnail?id=${coverId}&sz=w400`;
+
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.onclick = () => showPhotos(cat.name);
+                div.innerHTML = `
+                    <div style="overflow:hidden; border-radius:2px;">
+                        <img src="${coverUrl}" loading="lazy">
+                    </div>
+                    <div class="card-title">${cat.name}</div>
+                    <div class="card-sub">(${cat.photos.length} 張)</div>
+                `;
+                grid.appendChild(div);
+            });
+
+            // Update Pagination UI
+            document.getElementById('pagination').style.display = 'flex';
+            document.getElementById('pageIndicator').innerText = `${app.currentPage} / ${totalPages}`;
+            document.getElementById('prevBtn').disabled = app.currentPage === 1;
+            document.getElementById('nextBtn').disabled = app.currentPage === totalPages;
+        }
+
+        function changePage(delta) {
+            app.currentPage += delta;
+            renderAlbums();
+            // Scroll to top of grid (optional)
+        }
+
+        function showPhotos(catName) {
+            document.getElementById('albumGrid').style.display = 'none';
+            document.getElementById('pagination').style.display = 'none';
+
+            const grid = document.getElementById('photoGrid');
+            grid.style.display = 'grid';
+            document.getElementById('albumControl').style.display = 'flex';
+
+            grid.innerHTML = "";
+            const photos = allData.allFiles.filter(p => String(p.category) === String(catName));
+
+            photos.forEach(item => {
+                const thumb = `https://drive.google.com/thumbnail?id=${item.id}&sz=w600`;
+                const isVideo = item.type && item.type.includes('video');
+
+                const div = document.createElement('div');
+                div.className = 'photo-item';
+                div.onclick = () => openViewer(item.id, isVideo);
+                div.innerHTML = `
+                    ${isVideo ? '<div style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.5);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;">▶ VIDEO</div>' : ''}
+                    <img src="${thumb}" loading="lazy">
+                `;
+                grid.appendChild(div);
+            });
+            window.scrollTo({ top: 0 });
+        }
+
+        function showAlbumList() {
+            renderAlbums(); // Resets view
+        }
+
+        function openViewer(id, isVideo) {
+            const content = document.getElementById('viewerContent');
+            const overlay = document.getElementById('viewerOverlay');
+
+            // Clean
+            content.innerHTML = `<span id="closeBtn" onclick="closeViewer()">✕</span>`;
+
+            if (isVideo) {
+                content.innerHTML += `<iframe src="https://drive.google.com/file/d/${id}/preview" width="100%" height="100%" frameborder="0" allow="autoplay" style="background:#000;"></iframe>`;
+            } else {
+                const url = `https://drive.google.com/thumbnail?id=${id}&sz=w1200`;
+                content.innerHTML += `<img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain; box-shadow: 0 0 20px rgba(0,0,0,0.5);">`;
+            }
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeViewer() {
+            document.getElementById('viewerOverlay').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function handleBack(e) {
+            // Optional: If you want to check if index.html exists or use history.back()
+            // e.preventDefault(); history.back(); 
+        }
+
+        // --- Upload Logic ---
+
         async function compressImage(file) {
-            // 如果是 HEIC 格式，先轉檔
             if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic') {
                 try {
-                    document.getElementById('globalStatus').innerText += `\n正在轉換 HEIC 格式...`;
+                    updateStatus(`正在轉換 HEIC 格式...`);
                     const blob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.8 });
-                    file = blob; // 將轉好的 blob 視為新檔案
+                    file = blob;
                 } catch (e) {
-                    console.error("HEIC 轉換失敗", e);
                     throw new Error("HEIC 轉換失敗");
                 }
             }
-
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -107,196 +569,71 @@
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
                         let w = img.width, h = img.height;
-                        const maxSide = 1200; // 保持 1200px 限制
+                        const maxSide = 1200;
                         if (w > h && w > maxSide) { h *= maxSide / w; w = maxSide; }
                         else if (h > maxSide) { w *= maxSide / h; h = maxSide; }
                         canvas.width = w; canvas.height = h;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.8)); 
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
                     };
-                    img.onerror = (err) => reject(err);
+                    img.onerror = reject;
                 };
-                reader.onerror = (err) => reject(err);
+                reader.onerror = reject;
             });
+        }
+
+        function updateStatus(msg) {
+            document.getElementById('globalStatus').innerText = msg;
         }
 
         async function processUnifiedFiles(input) {
             const files = Array.from(input.files);
             if (files.length === 0) return;
 
-            const status = document.getElementById('globalStatus');
-            disableButtons(true);
-            
-            let successCount = 0;
-            let skipCount = 0;
+            const btn = document.querySelector('.upload-card-btn');
+            btn.style.opacity = 0.5; btn.style.pointerEvents = 'none';
 
+            let success = 0;
             for (let i = 0; i < files.length; i++) {
                 let file = files[i];
-                // 統一檔名為 jpg (即使原本是 heic)
                 let baseName = file.name.split('.')[0];
-                const fileNameToUpload = baseName + ".jpg";
-                
-                if (isDuplicate(fileNameToUpload)) {
-                    skipCount++;
-                    continue;
+                const fileName = baseName + ".jpg"; // Normalized
+
+                // Check dupes locally
+                if (allData.allFiles.some(f => f.name === fileName)) {
+                    continue; // Skip silently or log?
                 }
 
-                status.innerText = `⏳ 正在處理 (${i + 1}/${files.length})\n${file.name}`;
-                
+                updateStatus(`⏳ 處理中 (${i + 1}/${files.length}): ${file.name}`);
                 try {
                     const data = await compressImage(file);
-                    status.innerText = `⬆️ 正在上傳 (${i + 1}/${files.length})\n${file.name}`;
-                    const res = await uploadToGas(fileNameToUpload, data);
-                    if (res.ok) successCount++;
-                } catch (e) { 
-                    console.error("上傳出錯:", e); 
-                    status.innerText += `\n❌ ${file.name} 失敗`;
+                    updateStatus(`⬆️ 上傳中 (${i + 1}/${files.length})...`);
+                    await fetch(GAS_URL, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            fileName: fileName,
+                            fileData: data,
+                            userName: app.user
+                        })
+                    });
+                    success++;
+                } catch (e) {
+                    console.error(e);
                 }
             }
 
-            let msg = `投稿完成！\n成功：${successCount} 張`;
-            if (skipCount > 0) msg += `\n跳過重複：${skipCount} 張`;
-            alert(msg);
-            
-            finishUpload(input);
+            updateStatus("");
+            alert(`投稿完成！成功上傳 ${success} 張照片`);
+            input.value = "";
+            btn.style.opacity = 1; btn.style.pointerEvents = 'auto';
+            // Optional: Reload data?
+            // fetchData(); 
         }
 
-        async function uploadToGas(name, data) {
-            return fetch(gasUrl, { 
-                method: "POST", 
-                body: JSON.stringify({ fileName: name, fileData: data, userName: getPureUserName() })
-            });
-        }
+        window.onload = initLIFF;
 
-        function disableButtons(bool) {
-            const btn = document.querySelector('.upload-card-btn');
-            if(btn) { 
-                btn.style.opacity = bool ? "0.5" : "1"; 
-                btn.style.pointerEvents = bool ? "none" : "auto"; 
-            }
-        }
-
-        function finishUpload(input) {
-            document.getElementById('globalStatus').innerText = "";
-            disableButtons(false); 
-            input.value = ""; 
-            // 上傳後不強制重整，因為後端尚未分類
-        }
-
-        async function initLIFF() {
-            try {
-                await liff.init({ liffId });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                } else {
-                    const profile = await liff.getProfile();
-                    document.getElementById('userName').innerText = profile.displayName;
-                    fetchData();
-                }
-            } catch (err) { 
-                console.log("LIFF Error");
-                fetchData(); // 即使 LIFF 失敗也嘗試載入
-            }
-        }
-
-        async function fetchData() {
-            try {
-                // 第一次讀取不強制刷新
-                const response = await fetch(gasUrl);
-                allData = await response.json();
-                document.getElementById('loading').style.display = 'none';
-                showAlbumList();
-            } catch (err) { 
-                document.getElementById('loading').innerText = "載入失敗，請檢查網路。"; 
-            }
-        }
-
-        // 輔助函式：產生 Google Drive 縮圖網址
-        function getThumb(id, size = 'w400') {
-            return `https://drive.google.com/thumbnail?id=${id}&sz=${size}`;
-        }
-
-        function showAlbumList() {
-            document.getElementById('floatingMenu').style.display = 'none';
-            document.getElementById('photoGrid').style.display = 'none';
-            const albumGrid = document.getElementById('albumGrid');
-            albumGrid.style.display = 'grid'; 
-            albumGrid.innerHTML = "";
-            
-            // 整理分類資料
-            const sortedCats = allData.categories.map(cat => {
-                const photos = allData.allFiles.filter(p => String(p.category) === String(cat.name));
-                // 因為後端已經轉成 timestamp，這裡直接比較數字
-                const latestDate = photos.length > 0 ? photos[0].date : 0;
-                return { ...cat, latestDate, photos };
-            });
-
-            sortedCats.sort((a, b) => b.latestDate - a.latestDate);
-
-            sortedCats.forEach(cat => {
-                // 如果該分類沒照片，顯示預設圖或不顯示
-                if (cat.photos.length === 0) return;
-
-                const coverId = cat.photos[0].id;
-                const coverUrl = getThumb(coverId, 'w400');
-                
-                const div = document.createElement('div');
-                div.className = 'card'; 
-                div.onclick = () => showPhotos(cat.name);
-                div.innerHTML = `<img src="${coverUrl}" loading="lazy"><br>
-                                <div style="font-size:12px;margin-top:5px;font-weight:bold;">${cat.name}</div>
-                                <div style="font-size:10px;color:#8d6e63;">(${cat.photos.length} 項目)</div>`;
-                albumGrid.appendChild(div);
-            });
-        }
-
-        function showPhotos(catName) {
-            document.getElementById('albumGrid').style.display = 'none';
-            document.getElementById('floatingMenu').style.display = 'flex';
-            const photoGrid = document.getElementById('photoGrid');
-            photoGrid.style.display = 'grid'; 
-            photoGrid.innerHTML = "";
-            
-            const filteredFiles = allData.allFiles.filter(p => String(p.category) === String(catName));
-            
-            filteredFiles.forEach(item => {
-                const thumb = getThumb(item.id, 'w600');
-                const isVideo = item.type && item.type.includes('video');
-                const div = document.createElement('div');
-                div.className = 'photo-item'; 
-                div.onclick = () => openViewer(item.id, isVideo);
-                
-                let icon = isVideo ? '<div class="video-label">▶</div>' : '';
-                div.innerHTML = `${icon}<img src="${thumb}" loading="lazy"><p style="font-size:10px;text-align:center;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</p>`;
-                photoGrid.appendChild(div);
-            });
-            window.scrollTo({top: 0, behavior: 'instant'});
-        }
-
-        function openViewer(id, isVideo) {
-            const content = document.getElementById('viewerContent');
-            const overlay = document.getElementById('viewerOverlay');
-            content.innerHTML = '<span id="closeBtn" onclick="closeViewer()">✕</span>';
-            
-            if (isVideo) {
-                content.innerHTML += `<iframe src="https://drive.google.com/file/d/${id}/preview" width="100%" height="100%" frameborder="0" allow="autoplay" style="background:#000;"></iframe>`;
-            } else {
-                // 檢視大圖使用 w1200
-                const bigImg = getThumb(id, 'w1200');
-                content.innerHTML += `<img src="${bigImg}" style="max-width:100%; max-height:100%; object-fit:contain; box-shadow: 0 0 20px rgba(0,0,0,0.5);">`;
-            }
-            overlay.style.display = 'flex'; 
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeViewer() { 
-            document.getElementById('viewerContent').innerHTML = ""; 
-            document.getElementById('viewerOverlay').style.display = 'none'; 
-            document.body.style.overflow = 'auto'; 
-        }
-
-        initLIFF();
     </script>
 </body>
+
 </html>

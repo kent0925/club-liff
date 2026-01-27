@@ -1,44 +1,145 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>P.08 會內事業清單</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <style>
         :root {
-            --book-paper: #f9f4e8;
-            --ink-color: #3e3a39;
-            --accent-brown: #8c7662;
-            --page-border: #e0d6c3;
+            --book-paper: #fdfaf1;
+            --ink-color: #2d2926;
+            --accent-brown: #7c6a5a;
+            --page-border: #e8dfcc;
+            --stamp-red: #b03a2e;
         }
 
         body {
-            background-color: #d1cfc7;
-            font-family: "PingFang TC", "Microsoft JhengHei", serif;
+            background-color: #c4c2b9;
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 100%),
+                url('https://www.transparenttextures.com/patterns/dark-leather.png');
+            font-family: "Noto Sans TC", sans-serif;
             margin: 0;
             display: flex;
             justify-content: center;
+            align-items: center;
             min-height: 100vh;
-            padding: 20px 15px;
+            padding: 2.5rem 1rem;
         }
 
-        .book-page {
-            background-color: var(--book-paper);
+        .book-container {
             width: 100%;
-            max-width: 450px;
-            padding: 40px 25px;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.1), 0 0 40px rgba(0,0,0,0.05) inset;
-            position: relative;
-            border: 1px solid var(--page-border);
+            max-width: 420px;
+            perspective: 1500px;
         }
 
-        .back-link { text-decoration: none; color: var(--accent-brown); font-size: 14px; display: block; margin-bottom: 25px; }
-        .page-header { text-align: center; border-bottom: 2px double var(--accent-brown); margin-bottom: 25px; padding-bottom: 15px; }
-        h2 { color: var(--ink-color); letter-spacing: 3px; margin: 0; font-size: 24px; }
+        .book-cover {
+            background-color: var(--book-paper);
+            background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+            padding: 3.5rem 2.5rem;
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.3),
+                10px 0 30px rgba(0, 0, 0, 0.1),
+                inset 1px 0 0 white;
+            border: 1px solid var(--page-border);
+            border-radius: 4px 12px 12px 4px;
+            position: relative;
+            min-height: 680px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
 
+        .book-cover::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(to right,
+                    rgba(0, 0, 0, 0.2) 0%,
+                    rgba(0, 0, 0, 0) 10%,
+                    rgba(0, 0, 0, 0.05) 15%,
+                    rgba(255, 255, 255, 0.4) 18%,
+                    rgba(0, 0, 0, 0) 25%);
+            z-index: 5;
+        }
+
+        .decoration-lines {
+            position: absolute;
+            top: 0;
+            right: 15px;
+            bottom: 0;
+            width: 1px;
+            border-right: 1px solid rgba(0, 0, 0, 0.03);
+            box-shadow: 2px 0 0 rgba(0, 0, 0, 0.02), 4px 0 0 rgba(0, 0, 0, 0.01);
+            pointer-events: none;
+        }
+
+        .calligraphy {
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .back-link {
+            position: absolute;
+            left: 2.5rem;
+            top: 1.5rem;
+            font-size: 14px;
+            color: var(--accent-brown);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: bold;
+            z-index: 20;
+            opacity: 0.7;
+        }
+
+        .back-link:hover {
+            color: var(--stamp-red);
+            opacity: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            margin-top: 1.5rem;
+            position: relative;
+            border-bottom: 2px double var(--accent-brown);
+            padding-bottom: 1rem;
+        }
+
+        .header h2 {
+            font-size: 28px;
+            color: var(--ink-color);
+            letter-spacing: 0.1em;
+            margin: 0;
+        }
+
+        .header p {
+            font-size: 11px;
+            color: var(--accent-brown);
+            margin: 5px 0 0 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Specific Business Styles */
         .item-card {
             border-bottom: 1px dotted var(--accent-brown);
-            padding: 25px 5px;
+            padding: 25px 0;
+        }
+
+        .item-card:last-child {
+            border-bottom: none;
         }
 
         .biz-name {
@@ -58,23 +159,33 @@
             align-items: flex-start;
         }
 
-        .icon-label { margin-right: 8px; flex-shrink: 0; }
+        .icon-label {
+            margin-right: 8px;
+            flex-shrink: 0;
+            filter: grayscale(100%);
+            opacity: 0.7;
+        }
 
-        /* 連結樣式：地址與電話 */
         .clickable-link {
             color: #4285f4;
             text-decoration: none;
-            border-bottom: 1px solid #4285f4;
+            border-bottom: 1px solid transparent;
+            transition: 0.2s;
+        }
+
+        .clickable-link:hover {
+            border-bottom-color: #4285f4;
         }
 
         .biz-note {
-            font-size: 18px;
+            font-size: 15px;
             color: var(--accent-brown);
             font-style: italic;
             margin: 15px 0;
             opacity: 0.9;
             background: rgba(140, 118, 98, 0.05);
-            padding: 5px;
+            padding: 8px;
+            border-radius: 4px;
         }
 
         .link-group {
@@ -89,36 +200,83 @@
             background: #fff;
             border: 1px solid var(--accent-brown);
             color: var(--accent-brown);
-            padding: 6px 12px;
+            padding: 5px 12px;
             border-radius: 4px;
             font-size: 13px;
             transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .link-btn:active { background: var(--accent-brown); color: #fff; }
+        .link-btn:hover {
+            background: var(--accent-brown);
+            color: #fff;
+        }
 
-        .loading { text-align: center; padding: 50px; color: var(--accent-brown); }
-        .page-footer { margin-top: 50px; text-align: center; color: var(--accent-brown); font-family: "Georgia", serif; font-size: 14px; }
+        .link-btn:active {
+            transform: translateY(1px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: var(--accent-brown);
+            font-style: italic;
+        }
+
+        .footer {
+            margin-top: auto;
+            text-align: center;
+            font-size: 14px;
+            color: var(--accent-brown);
+            font-family: "Georgia", serif;
+            padding-top: 2rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease forwards;
+        }
     </style>
 </head>
+
 <body>
 
-    <div class="book-page">
-        <a href="index.html" class="back-link">⇠ 返回目錄</a>
-        <div class="page-header">
-            <h2>會內事業清單</h2>
-            <p style="font-size: 10px; color: #a39485; margin: 5px 0 0 0; letter-spacing: 1px;">BUSINESS DIRECTORY</p>
-        </div>
+    <div class="book-container fade-in">
+        <div class="book-cover">
+            <div class="decoration-lines"></div>
 
-        <div id="content">
-            <div class="loading">正在檢索商號...</div>
-        </div>
+            <a href="index.html" class="back-link">
+                ⇠ 返回目錄
+            </a>
 
-        <div class="page-footer">Page — 08</div>
+            <div class="header">
+                <h2 class="calligraphy">會內事業清單</h2>
+                <p>BUSINESS DIRECTORY</p>
+            </div>
+
+            <div id="content" style="flex-grow: 1; overflow-y: auto;">
+                <div class="loading">正在檢索商號...</div>
+            </div>
+
+            <div class="footer">Page — 08</div>
+        </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec";
 
         async function initPage() {
             const container = document.getElementById('content');
@@ -183,4 +341,5 @@
         initPage();
     </script>
 </body>
+
 </html>

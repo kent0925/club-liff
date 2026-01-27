@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>國際大老二兄弟會 — 時光相簿</title>
+    <title>P.11 時光相簿</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
         rel="stylesheet">
@@ -76,74 +76,61 @@
             z-index: 5;
         }
 
+        .decoration-lines {
+            position: absolute;
+            top: 0;
+            right: 15px;
+            bottom: 0;
+            width: 1px;
+            border-right: 1px solid rgba(0, 0, 0, 0.03);
+            box-shadow: 2px 0 0 rgba(0, 0, 0, 0.02), 4px 0 0 rgba(0, 0, 0, 0.01);
+            pointer-events: none;
+        }
+
         .calligraphy {
             font-family: 'Ma Shan Zheng', cursive;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-            /* Reduced margin */
-            position: relative;
-        }
-
-        .header h1 {
-            font-size: 32px;
-            color: var(--ink-color);
-            letter-spacing: 0.15em;
-            margin: 0;
-            padding-bottom: 0.75rem;
-            position: relative;
-        }
-
-        .header h1::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 20%;
-            right: 20%;
-            height: 1px;
-            background: linear-gradient(to right, transparent, var(--accent-brown), transparent);
-        }
-
-        /* Back Button */
         .back-link {
             position: absolute;
-            left: 0;
-            top: 5px;
+            left: 2.5rem;
+            top: 1.5rem;
             font-size: 14px;
             color: var(--accent-brown);
             text-decoration: none;
             display: flex;
             align-items: center;
             gap: 4px;
-            transition: color 0.3s;
             font-weight: bold;
             z-index: 20;
-            /* Ensure it is above the book spine effect */
+            opacity: 0.7;
         }
 
         .back-link:hover {
             color: var(--stamp-red);
+            opacity: 1;
         }
 
-        .footer {
-            margin-top: auto;
-            /* Push to bottom in flex column */
-            padding-top: 2rem;
+        .header {
             text-align: center;
-            font-size: 11px;
-            color: var(--accent-brown);
-            opacity: 0.5;
-            letter-spacing: 0.2em;
-            width: 100%;
-            /* Ensure full width for centering */
+            margin-bottom: 2rem;
+            margin-top: 1.5rem;
+            position: relative;
+            border-bottom: 2px double var(--accent-brown);
+            padding-bottom: 1rem;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: var(--ink-color);
+            letter-spacing: 0.1em;
+            margin: 0;
         }
 
         .member-info {
             font-size: 13px;
             color: var(--accent-brown);
-            margin-top: 1rem;
+            margin-top: 0.5rem;
             letter-spacing: 0.1em;
             font-weight: 500;
         }
@@ -301,16 +288,6 @@
             cursor: pointer;
         }
 
-        .decoration-lines {
-            position: absolute;
-            top: 0;
-            right: 15px;
-            bottom: 0;
-            width: 1px;
-            border-right: 1px solid rgba(0, 0, 0, 0.03);
-            box-shadow: 2px 0 0 rgba(0, 0, 0, 0.02), 4px 0 0 rgba(0, 0, 0, 0.01);
-        }
-
         .hidden-input {
             display: none;
         }
@@ -339,6 +316,16 @@
             margin-bottom: 10px;
             white-space: pre-wrap;
         }
+
+        .footer {
+            margin-top: auto;
+            text-align: center;
+            font-size: 14px;
+            color: var(--accent-brown);
+            font-family: "Georgia", serif;
+            padding-top: 2rem;
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -349,7 +336,6 @@
             <div class="decoration-lines"></div>
 
             <div class="header">
-                <!-- Back Button -->
                 <a href="index.html" class="back-link">
                     ⇠ 返回目錄
                 </a>
@@ -391,9 +377,7 @@
                 <button class="page-btn" onclick="showAlbumList()">↩ 返回列表</button>
             </div>
 
-            <div class="footer">
-                <p class="font-bold">亞太國際大老二兄弟會</p>
-            </div>
+            <div class="footer">Page — 11</div>
         </div>
     </div>
 

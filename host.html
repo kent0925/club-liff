@@ -100,7 +100,7 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            
+
             font-weight: bold;
             z-index: 20;
             opacity: 0.7;
@@ -128,16 +128,20 @@
         }
 
         .header p {
-            font-size: 11px; 
-            color: var(--accent-brown); 
-            margin: 5px 0 0 0; 
+            font-size: 11px;
+            color: var(--accent-brown);
+            margin: 5px 0 0 0;
             letter-spacing: 2px;
             text-transform: uppercase;
             opacity: 0.8;
         }
 
         /* Content Specific Styles */
-        .data-list { list-style: none; padding: 0; margin: 0; }
+        .data-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
 
         .data-item {
             display: flex;
@@ -147,11 +151,11 @@
             border-bottom: 1px dotted var(--accent-brown);
         }
 
-        .month-label { 
-            font-family: "Georgia", serif; 
-            font-style: italic; 
-            color: var(--accent-brown); 
-            font-size: 18px; 
+        .month-label {
+            font-family: "Georgia", serif;
+            font-style: italic;
+            color: var(--accent-brown);
+            font-size: 18px;
             white-space: nowrap;
         }
 
@@ -178,11 +182,12 @@
             opacity: 0.9;
         }
 
-        .loading, .error { 
-            text-align: center; 
-            padding: 50px 0; 
-            color: var(--accent-brown); 
-            font-style: italic; 
+        .loading,
+        .error {
+            text-align: center;
+            padding: 50px 0;
+            color: var(--accent-brown);
+            font-style: italic;
         }
 
         .footer {
@@ -195,11 +200,20 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .fade-in { animation: fadeIn 0.8s ease forwards; }
+        .fade-in {
+            animation: fadeIn 0.8s ease forwards;
+        }
     </style>
 </head>
 
@@ -208,13 +222,13 @@
     <div class="book-container fade-in">
         <div class="book-cover">
             <div class="decoration-lines"></div>
-            
+
             <a href="index.html" class="back-link">
                 ⇠ 返回目錄
             </a>
 
             <div class="header">
-                <h2 class="calligraphy">每月爐主名冊</h2>
+                <h2 class="calligraphy">2026 爐主名冊</h2>
                 <p>THE CHOSEN HOSTS OF 2026</p>
             </div>
 
@@ -227,7 +241,7 @@
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec"; 
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbx0mNGfdugg3Ep3yMbI65qacUaZbwOZxuVly90p-QmqyGp5KbvIMTtvvD3mjoiX1VWg/exec";
 
         async function loadData(sheetType) {
             try {
@@ -255,21 +269,21 @@
             }
 
             let html = '<ul class="data-list">';
-            
+
             data.forEach(item => {
-                if(!item.月份 && !item.姓名) return;
+                if (!item.月份 && !item.姓名) return;
 
                 let displayDate = item.月份;
-                
+
                 if (typeof item.月份 === 'string' && item.月份.includes('T')) {
                     const dObj = new Date(item.月份);
                     if (!isNaN(dObj)) {
-                        displayDate = `${dObj.getMonth()+1}/${dObj.getDate()} (${weekDays[dObj.getDay()]})`;
+                        displayDate = `${dObj.getMonth() + 1}/${dObj.getDate()} (${weekDays[dObj.getDay()]})`;
                     }
                 }
 
-                const noteContent = (item.備註 && String(item.備註).trim() !== "") 
-                    ? `<span class="note-text">※ ${item.備註}</span>` 
+                const noteContent = (item.備註 && String(item.備註).trim() !== "")
+                    ? `<span class="note-text">※ ${item.備註}</span>`
                     : "";
 
                 html += `
@@ -292,4 +306,3 @@
 </body>
 
 </html>
-

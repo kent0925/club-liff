@@ -5,119 +5,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>P.11 時光相簿</title>
+    <!-- 預連接優化 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://drive.google.com">
+    <!-- 字體 -->
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
         rel="stylesheet">
+    <!-- LIFF SDK（此頁需要用於登入功能） -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <!-- HEIC 轉換（此頁需要用於照片上傳） -->
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <!-- 共用樣式 -->
+    <link rel="stylesheet" href="common.css">
     <style>
-        :root {
-            --book-paper: #fdfaf1;
-            --ink-color: #2d2926;
-            --accent-brown: #7c6a5a;
-            --page-border: #e8dfcc;
-            --stamp-red: #b03a2e;
-        }
-
-        body {
-            background-color: #c4c2b9;
-            background-image:
-                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 100%),
-                url('https://www.transparenttextures.com/patterns/dark-leather.png');
-            font-family: "Noto Sans TC", sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 2.5rem 1rem;
-        }
-
+        /* 頁面專屬樣式 */
         .book-container {
-            width: 100%;
             max-width: 480px;
-            /* Slightly wider for grid */
-            perspective: 1500px;
         }
 
         .book-cover {
-            background-color: var(--book-paper);
-            background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
-            padding: 3.5rem 2.5rem;
-            box-shadow:
-                0 20px 50px rgba(0, 0, 0, 0.3),
-                10px 0 30px rgba(0, 0, 0, 0.1),
-                inset 1px 0 0 white;
-            border: 1px solid var(--page-border);
-            border-radius: 4px 12px 12px 4px;
-            position: relative;
             min-height: 750px;
-            /* Increased height for content */
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* 3D Spine Effect */
-        .book-cover::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 20px;
-            background: linear-gradient(to right,
-                    rgba(0, 0, 0, 0.2) 0%,
-                    rgba(0, 0, 0, 0) 10%,
-                    rgba(0, 0, 0, 0.05) 15%,
-                    rgba(255, 255, 255, 0.4) 18%,
-                    rgba(0, 0, 0, 0) 25%);
-            z-index: 5;
-        }
-
-        .decoration-lines {
-            position: absolute;
-            top: 0;
-            right: 15px;
-            bottom: 0;
-            width: 1px;
-            border-right: 1px solid rgba(0, 0, 0, 0.03);
-            box-shadow: 2px 0 0 rgba(0, 0, 0, 0.02), 4px 0 0 rgba(0, 0, 0, 0.01);
-            pointer-events: none;
-        }
-
-        .calligraphy {
-            font-family: 'Ma Shan Zheng', cursive;
-        }
-
-        .back-link {
-            position: absolute;
-            left: 2.5rem;
-            top: 1.5rem;
-            font-size: 14px;
-            color: var(--accent-brown);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-weight: bold;
-            z-index: 20;
-            opacity: 0.7;
-        }
-
-        .back-link:hover {
-            color: var(--stamp-red);
-            opacity: 1;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-            margin-top: 1.5rem;
-            position: relative;
-            border-bottom: 2px double var(--accent-brown);
-            padding-bottom: 1rem;
         }
 
         .header h1 {
@@ -135,7 +45,6 @@
             font-weight: 500;
         }
 
-        /* Upload Section */
         .upload-card-btn {
             background: white;
             border: 1px dashed var(--accent-brown);
@@ -168,7 +77,11 @@
             margin-top: 5px;
         }
 
-        /* Grid System */
+        .upload-warning {
+            color: #991b1b;
+            font-size: 11px;
+        }
+
         .grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -183,7 +96,6 @@
             padding: 8px 8px 12px 8px;
             border: 1px solid #eee;
             box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.08);
-            /* Polaroid shadow */
             cursor: pointer;
             transition: transform 0.2s;
             border-radius: 2px;
@@ -200,7 +112,6 @@
             object-fit: cover;
             background: #f5f5f5;
             filter: sepia(0.15);
-            /* Vintage feel */
         }
 
         .card-title {
@@ -229,7 +140,6 @@
             object-fit: cover;
         }
 
-        /* Pagination */
         .pagination {
             display: flex;
             justify-content: center;
@@ -254,7 +164,6 @@
             cursor: not-allowed;
         }
 
-        /* Viewer */
         #viewerOverlay {
             position: fixed;
             top: 0;
@@ -292,22 +201,6 @@
             display: none;
         }
 
-        .fade-in {
-            animation: fadeIn 0.8s ease forwards;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         .status-msg {
             color: var(--stamp-red);
             font-size: 12px;
@@ -317,14 +210,14 @@
             white-space: pre-wrap;
         }
 
-        .footer {
-            margin-top: auto;
+        .loading-text {
             text-align: center;
-            font-size: 14px;
-            color: var(--accent-brown);
-            font-family: "Georgia", serif;
-            padding-top: 2rem;
-            width: 100%;
+            color: #78716c;
+            padding: 40px 0;
+        }
+
+        .opacity-40 {
+            opacity: 0.4;
         }
     </style>
 </head>
@@ -354,13 +247,13 @@
             <!-- Upload Area -->
             <div class="upload-card-btn" onclick="document.getElementById('unifiedInput').click()">
                 <h4>📸 投稿照片</h4>
-                <span>點此選擇照片 (支援多張/iPhone格式)<br><span class="text-red-800 text-xs">⚠️ 影片請直接傳至群組相簿</span></span>
+                <span>點此選擇照片 (支援多張/iPhone格式)<br><span class="upload-warning">⚠️ 影片請直接傳至群組相簿</span></span>
                 <input type="file" id="unifiedInput" class="hidden-input" accept="image/*,.heic" multiple
                     onchange="processUnifiedFiles(this)">
             </div>
 
             <!-- Content Area -->
-            <div id="loading" class="text-center text-stone-500 py-10">🚀 正在連接時光機...</div>
+            <div id="loading" class="loading-text">🚀 正在連接時光機...</div>
 
             <div id="albumGrid" class="grid-container"></div>
             <div id="photoGrid" class="grid-container" style="display:none;"></div>
@@ -389,7 +282,6 @@
     </div>
 
     <script>
-        // Config from previous version
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbyBsFLlYt415vWiBipXhvycp_OMoQAJZdtfBi85IvQ29sfyCQphy6P0RrhMndpoLT33/exec';
         const LIFF_ID = '2008678090-ZMqCkYFi';
 
@@ -408,7 +300,7 @@
                     const profile = await liff.getProfile();
                     app.user = profile.displayName;
                 } else {
-                    liff.login(); // Force Login? or allow guest? Let's allow guest logic for now but name is visitor
+                    liff.login();
                 }
             } catch (err) {
                 console.log("LIFF Init Error or Local Env");
@@ -428,22 +320,17 @@
             }
         }
 
-        // --- Render Logic (Pagination) ---
-
         function renderAlbums() {
-            // Hide Photos, Show Albums
             document.getElementById('photoGrid').style.display = 'none';
             document.getElementById('albumControl').style.display = 'none';
             document.getElementById('albumGrid').style.display = 'grid';
 
-            // Prepare Data
             const sortedCats = allData.categories.map(cat => {
                 const photos = allData.allFiles.filter(p => String(p.category) === String(cat.name));
                 const latestDate = photos.length > 0 ? photos[0].date : 0;
                 return { ...cat, latestDate, photos };
             }).sort((a, b) => b.latestDate - a.latestDate);
 
-            // Pagination Logic
             const totalPages = Math.ceil(sortedCats.length / app.itemsPerPage) || 1;
             if (app.currentPage > totalPages) app.currentPage = totalPages;
             if (app.currentPage < 1) app.currentPage = 1;
@@ -452,12 +339,11 @@
             const end = start + app.itemsPerPage;
             const visibleCats = sortedCats.slice(start, end);
 
-            // Render Grid
             const grid = document.getElementById('albumGrid');
             grid.innerHTML = "";
 
             visibleCats.forEach(cat => {
-                if (cat.photos.length === 0) return; // Skip empty? User asked for folders.
+                if (cat.photos.length === 0) return;
 
                 const coverId = cat.photos[0].id;
                 const coverUrl = `https://drive.google.com/thumbnail?id=${coverId}&sz=w400`;
@@ -475,7 +361,6 @@
                 grid.appendChild(div);
             });
 
-            // Update Pagination UI
             document.getElementById('pagination').style.display = 'flex';
             document.getElementById('pageIndicator').innerText = `${app.currentPage} / ${totalPages}`;
             document.getElementById('prevBtn').disabled = app.currentPage === 1;
@@ -485,7 +370,6 @@
         function changePage(delta) {
             app.currentPage += delta;
             renderAlbums();
-            // Scroll to top of grid (optional)
         }
 
         function showPhotos(catName) {
@@ -516,14 +400,13 @@
         }
 
         function showAlbumList() {
-            renderAlbums(); // Resets view
+            renderAlbums();
         }
 
         function openViewer(id, isVideo) {
             const content = document.getElementById('viewerContent');
             const overlay = document.getElementById('viewerOverlay');
 
-            // Clean
             content.innerHTML = `<span id="closeBtn" onclick="closeViewer()">✕</span>`;
 
             if (isVideo) {
@@ -540,9 +423,6 @@
             document.getElementById('viewerOverlay').style.display = 'none';
             document.body.style.overflow = 'auto';
         }
-
-
-        // --- Upload Logic ---
 
         async function compressImage(file) {
             if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic') {
@@ -592,11 +472,10 @@
             for (let i = 0; i < files.length; i++) {
                 let file = files[i];
                 let baseName = file.name.split('.')[0];
-                const fileName = baseName + ".jpg"; // Normalized
+                const fileName = baseName + ".jpg";
 
-                // Check dupes locally
                 if (allData.allFiles.some(f => f.name === fileName)) {
-                    continue; // Skip silently or log?
+                    continue;
                 }
 
                 updateStatus(`⏳ 處理中 (${i + 1}/${files.length}): ${file.name}`);
@@ -621,12 +500,9 @@
             alert(`投稿完成！成功上傳 ${success} 張照片`);
             input.value = "";
             btn.style.opacity = 1; btn.style.pointerEvents = 'auto';
-            // Optional: Reload data?
-            // fetchData(); 
         }
 
         window.onload = initLIFF;
-
     </script>
 </body>
 

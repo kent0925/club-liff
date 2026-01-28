@@ -5,82 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>國際大老二兄弟會 — 會務資料錄</title>
+    <!-- 預連接優化 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://static.line-scdn.net">
+    <!-- 字體 -->
     <link
         href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
         rel="stylesheet">
+    <!-- LIFF SDK（此頁需要用於登入功能） -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <!-- 共用樣式 -->
+    <link rel="stylesheet" href="common.css">
     <style>
-        :root {
-            --book-paper: #fdfaf1;
-            --ink-color: #2d2926;
-            --accent-brown: #7c6a5a;
-            --page-border: #e8dfcc;
-            --stamp-red: #b03a2e;
-        }
-
-        body {
-            background-color: #c4c2b9;
-            background-image:
-                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 100%),
-                url('https://www.transparenttextures.com/patterns/dark-leather.png');
-            font-family: "Noto Sans TC", sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 2.5rem 1rem;
-        }
-
-        .book-container {
-            width: 100%;
-            max-width: 420px;
-            perspective: 1500px;
-        }
-
-        .book-cover {
-            background-color: var(--book-paper);
-            background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
-            padding: 3.5rem 2.5rem;
-            box-shadow:
-                0 20px 50px rgba(0, 0, 0, 0.3),
-                10px 0 30px rgba(0, 0, 0, 0.1),
-                inset 1px 0 0 white;
-            border: 1px solid var(--page-border);
-            border-radius: 4px 12px 12px 4px;
-            position: relative;
-            min-height: 680px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* 3D Spine Effect */
-        .book-cover::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 20px;
-            background: linear-gradient(to right,
-                    rgba(0, 0, 0, 0.2) 0%,
-                    rgba(0, 0, 0, 0) 10%,
-                    rgba(0, 0, 0, 0.05) 15%,
-                    rgba(255, 255, 255, 0.4) 18%,
-                    rgba(0, 0, 0, 0) 25%);
-            z-index: 5;
-        }
-
-        .calligraphy {
-            font-family: 'Ma Shan Zheng', cursive;
-        }
-
+        /* 頁面專屬樣式 - 首頁目錄 */
         .header {
             text-align: center;
             margin-bottom: 3.5rem;
             position: relative;
+            border-bottom: none;
+            padding-bottom: 0;
         }
 
         .header h1 {
@@ -167,6 +111,16 @@
             margin-left: 0.5rem;
         }
 
+        .tag-new {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .tag-update {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
         .stamp {
             position: absolute;
             bottom: 3rem;
@@ -189,7 +143,7 @@
             background: radial-gradient(circle, rgba(176, 58, 46, 0.05) 0%, transparent 70%);
         }
 
-        .footer {
+        .index-footer {
             margin-top: 2rem;
             text-align: center;
             font-size: 11px;
@@ -198,31 +152,16 @@
             letter-spacing: 0.2em;
         }
 
-        /* Subtle page line decoration */
-        .decoration-lines {
-            position: absolute;
-            top: 0;
-            right: 15px;
-            bottom: 0;
-            width: 1px;
-            border-right: 1px solid rgba(0, 0, 0, 0.03);
-            box-shadow: 2px 0 0 rgba(0, 0, 0, 0.02), 4px 0 0 rgba(0, 0, 0, 0.01);
+        .index-footer p {
+            margin: 0;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .index-footer .mt-1 {
+            margin-top: 0.25rem;
         }
 
-        .fade-in {
-            animation: fadeIn 0.8s ease forwards;
+        .opacity-40 {
+            opacity: 0.4;
         }
     </style>
 </head>
@@ -246,8 +185,7 @@
                 <ul class="nav-list">
                     <li class="nav-item">
                         <a href="host.html" class="nav-link">
-                            <span class="item-title">🖋️ 2026 爐主名冊 <span
-                                    class="tag bg-red-100 text-red-600">最新</span></span>
+                            <span class="item-title">🖋️ 2026 爐主名冊 <span class="tag tag-new">最新</span></span>
                             <span class="page-num">05</span>
                         </a>
                     </li>
@@ -259,8 +197,7 @@
                     </li>
                     <li class="nav-item">
                         <a href="finance.html" class="nav-link">
-                            <span class="item-title">📂 會內帳冊紀錄 <span
-                                    class="tag bg-blue-100 text-blue-600">更新</span></span>
+                            <span class="item-title">📂 會內帳冊紀錄 <span class="tag tag-update">更新</span></span>
                             <span class="page-num">07</span>
                         </a>
                     </li>
@@ -293,15 +230,15 @@
 
             <div class="stamp">已閱</div>
 
-            <div class="footer">
-                <p class="font-bold">亞太國際大老二兄弟會</p>
+            <div class="index-footer">
+                <p style="font-weight: bold;">亞太國際大老二兄弟會</p>
                 <p class="mt-1">© 2026 ALL RECORDS RESERVED</p>
             </div>
         </div>
     </div>
 
     <script>
-        const LIFF_ID = '2008678090-eGItUWQx'; // Using previous ID
+        const LIFF_ID = '2008678090-eGItUWQx';
 
         async function initLIFF() {
             try {
